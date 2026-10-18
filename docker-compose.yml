@@ -1,0 +1,33 @@
+services:
+  db:
+    image: mariadb:10.11
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: kbhff_dk
+      MYSQL_USER: kbhff
+      MYSQL_PASSWORD: kbhff
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./docker/00-init.sh:/docker-entrypoint-initdb.d/00-init.sh:ro
+      - ./submodules/janitor/src/config/db:/sql-janitor:ro
+      - ./theme/config/db:/sql-theme:ro
+    ports:
+      - "3306:3306"
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: sh -c "php /var/www/html/docker/seed-access.php && exec apache2-foreground"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - db
+    ports:
+      - "8080:80"
+
+volumes:
+  db_data:
