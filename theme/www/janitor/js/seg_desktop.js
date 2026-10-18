@@ -6088,7 +6088,7 @@ Util.History = u.h = new function() {
 		this.trail.push({"url":url, "node":node});
 	}
 	this.getCleanUrl = function(string, levels) {
-		string = string.replace(location.protocol+"//"+document.domain, "") ? string.replace(location.protocol+"//"+document.domain, "").match(/[^#$]+/)[0] : "/";
+		string = string.replace(location.protocol+"//"+location.host, "") ? string.replace(location.protocol+"//"+location.host, "").match(/[^#$]+/)[0] : "/";
 		if(!levels) {
 			return string;
 		}
