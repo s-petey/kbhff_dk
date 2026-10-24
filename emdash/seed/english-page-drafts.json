@@ -1,0 +1,336 @@
+{
+  "$schema": "https://emdashcms.com/seed.schema.json",
+  "version": "1",
+  "meta": {
+    "name": "KBHFF English page drafts",
+    "description": "Unpublished English summaries based on live pages reviewed 2026-10-22; editorial verification required",
+    "author": "KBHFF"
+  },
+  "collections": [
+    {
+      "slug": "pages",
+      "label": "Pages",
+      "labelSingular": "Page",
+      "urlPattern": "/{slug}",
+      "supports": ["drafts", "revisions", "preview", "search", "seo"],
+      "fields": [
+        {
+          "slug": "title",
+          "label": "Title",
+          "type": "string",
+          "required": true,
+          "searchable": true
+        },
+        {
+          "slug": "content",
+          "label": "Content",
+          "type": "portableText",
+          "searchable": true
+        }
+      ]
+    }
+  ],
+  "content": {
+    "pages": [
+      {
+        "id": "about",
+        "slug": "about",
+        "locale": "en",
+        "status": "draft",
+        "data": {
+          "title": "About KBHFF",
+          "content": [
+            {
+              "_type": "block",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "text": "KBHFF is a member-owned food cooperative in Copenhagen. Members work together to source seasonal produce from local organic and biodynamic growers, and take part in decisions about the cooperative. Members can order produce for collection at a local department, usually on Wednesdays. This is a short English draft based on the live About page and existing English overview; review it for accuracy and completeness before publishing. Sources: https://kbhff.dk/om/ and https://kbhff.dk/english",
+                  "_key": "about-placeholder"
+                }
+              ],
+              "_key": "about-placeholder-block"
+            }
+          ]
+        }
+      },
+      {
+        "id": "core-principles-en",
+        "slug": "core-principles",
+        "locale": "en",
+        "status": "draft",
+        "data": {
+          "title": "Our Core Principles",
+          "content": [
+            {
+              "_type": "block",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "text": "KBHFF's ten principles describe a food system based on organic and biodynamic growing, local and seasonal produce, fair direct trade, and responsible use of resources. They also emphasize sharing knowledge, financial independence, transparency, accessibility, and a strong local community. The members adopted the principles in 2010 and the Danish page says they were revised in December 2024. This summary is not a complete translation; check each principle against the current source before publishing. Sources: https://kbhff.dk/om/10-grundprincipper/ and https://kbhff.dk/english",
+                  "_key": "principles-placeholder"
+                }
+              ],
+              "_key": "principles-placeholder-block"
+            }
+          ]
+        }
+      },
+      {
+        "id": "organization-en",
+        "slug": "organization",
+        "locale": "en",
+        "status": "draft",
+        "data": {
+          "title": "How KBHFF Is Organized",
+          "content": [
+            {
+              "_type": "block",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "text": "KBHFF describes its organization in three broad levels: member governance through the general assembly and board; shared coordination through meetings and working groups; and local departments where members collect pre-ordered goods. Shared work includes purchasing, the common warehouse and distribution, IT, and other cooperative activities. The live page also includes staffing figures and role descriptions that may change. Verify current details before publishing. Source: https://kbhff.dk/om/organisationen/",
+                  "_key": "organization-placeholder"
+                }
+              ],
+              "_key": "organization-placeholder-block"
+            }
+          ]
+        }
+      },
+      {
+        "id": "timeline-en",
+        "slug": "timeline",
+        "locale": "en",
+        "status": "draft",
+        "data": {
+          "title": "KBHFF Timeline",
+          "content": [
+            {
+              "_type": "block",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "text": "The timeline records milestones in KBHFF's development, including the launch of its membership system and online shop, changes to the warehouse and local departments, new product initiatives, and cooperative partnerships. Recent entries describe organizational and membership developments through 2026. This is an overview, not a full translation of the historical record; verify dates and events against the live timeline before publishing. Source: https://kbhff.dk/om/tidslinje/",
+                  "_key": "timeline-placeholder"
+                }
+              ],
+              "_key": "timeline-placeholder-block"
+            }
+          ]
+        }
+      },
+      {
+        "id": "products-en",
+        "slug": "products",
+        "locale": "en",
+        "status": "draft",
+        "data": {
+          "title": "Products and Prices",
+          "content": [
+            {
+              "_type": "block",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "text": "KBHFF's product range includes seasonal vegetable and fruit bags, as well as potato and mushroom bags. Members may also be able to pre-order loose produce and buy selected dry goods such as juice, flour, lentils, beans, peas, oil, and honey. Bag contents vary with the season and supplier availability, and prices can differ by membership type. This overview intentionally omits prices; check the current price list and ordering system before publishing. Sources: https://kbhff.dk/om/produkter/ and https://kbhff.dk/english",
+                  "_key": "products-placeholder"
+                }
+              ],
+              "_key": "products-placeholder-block"
+            }
+          ]
+        }
+      },
+      {
+        "id": "producers-en",
+        "slug": "producers",
+        "locale": "en",
+        "status": "draft",
+        "data": {
+          "title": "Our Producers",
+          "content": [
+            {
+              "_type": "block",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "text": "KBHFF's live producer directory groups suppliers by produce type, including vegetables and mushrooms, fruit, and dry goods. Examples named on the current page include Birkemosegaard, Svanholm, Tvedemose, Funga Farm, Lærkehøj, Østagergård, and Linser for Livet. This is a selection, not a complete or guaranteed-current supplier list. Confirm supplier participation, names, and links with KBHFF before publishing. Source: https://kbhff.dk/om/om-producenterne/",
+                  "_key": "producers-placeholder"
+                }
+              ],
+              "_key": "producers-placeholder-block"
+            }
+          ]
+        }
+      },
+      {
+        "id": "faq-en",
+        "slug": "faq",
+        "locale": "en",
+        "status": "draft",
+        "data": {
+          "title": "Frequently Asked Questions",
+          "content": [
+            {
+              "_type": "block",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "text": "The live FAQ is currently presented in Danish and groups questions into topics such as membership, ordering and collection, produce and loose sales, volunteer work, and other practical matters. Common questions cover joining, changing departments, order deadlines, collection, and problems with an order. This is only a topic overview, not translated answers. Select and review individual answers before publishing an English FAQ. Source: https://kbhff.dk/faq/",
+                  "_key": "faq-placeholder"
+                }
+              ],
+              "_key": "faq-placeholder-block"
+            }
+          ]
+        }
+      },
+      {
+        "id": "departments-en",
+        "slug": "departments",
+        "locale": "en",
+        "status": "draft",
+        "data": {
+          "title": "Our Departments",
+          "content": [
+            {
+              "_type": "block",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "text": "KBHFF's live directory lists local departments across Copenhagen, including Amager, Frederiksberg, Logik, Nordvest, Nørrebro, Sydhavnen, Valby, Vanløse, Vesterbro, and Østerbro. The directory gives addresses and collection hours; some department pages also provide English descriptions. The live listing notes that Vanløse closed on 1 October 2026, while Logik is not open for general sign-up. Confirm the current branch list, status, hours, and contact details before publishing. Source: https://kbhff.dk/afdelinger/",
+                  "_key": "departments-placeholder"
+                }
+              ],
+              "_key": "departments-placeholder-block"
+            }
+          ]
+        }
+      },
+      {
+        "id": "weekly-bag-en",
+        "slug": "weekly-bag",
+        "locale": "en",
+        "status": "draft",
+        "data": {
+          "title": "Weekly Bag Archive",
+          "content": [
+            {
+              "_type": "block",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "text": "The weekly-bag archive provides examples of past offers and links to individual weeks. A weekly entry can describe different bag types and the produce, quantities, and suppliers offered for that week; the assortment changes with the season. This page is an overview only. Do not treat archived details as current availability or pricing; verify live offers in the ordering system. Source: https://kbhff.dk/ugens-pose/",
+                  "_key": "weekly-bag-placeholder"
+                }
+              ],
+              "_key": "weekly-bag-placeholder-block"
+            }
+          ]
+        }
+      },
+      {
+        "id": "contact-en",
+        "slug": "contact",
+        "locale": "en",
+        "status": "draft",
+        "data": {
+          "title": "Contact KBHFF",
+          "content": [
+            {
+              "_type": "block",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "text": "KBHFF's main office is listed at Hotel- og Restaurantskolen, Vigerslev Allé 18, 2500 Valby. The contact page routes general and press enquiries to info@kbhff.dk, supplier enquiries to indkoeb@kbhff.dk, finance questions to okonomi@kbhff.dk, IT support to it@kbhff.dk, and volunteering or shared-warehouse enquiries to fk@kbhff.dk. Department-specific matters should go to the relevant local department. Verify every address and contact route before publishing. Source: https://kbhff.dk/kontakt/",
+                  "_key": "contact-placeholder"
+                }
+              ],
+              "_key": "contact-placeholder-block"
+            }
+          ]
+        }
+      },
+      {
+        "id": "privacy-en",
+        "slug": "privacy",
+        "locale": "en",
+        "status": "draft",
+        "data": {
+          "title": "Privacy Policy",
+          "content": [
+            {
+              "_type": "block",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "text": "EDITORIAL NOTE — NOT APPROVED PRIVACY COPY. The current Danish policy discusses membership and transaction data, account cookies, retention periods, member rights, and contact details. It states that some membership information is retained for up to a year after membership ends and payment transaction information for five years. These are summaries of the Danish source, not verified legal translations. Obtain an authoritative English version and legal review; confirm every data practice and retention period before publishing. Source: https://kbhff.dk/persondata/",
+                  "_key": "privacy-placeholder"
+                }
+              ],
+              "_key": "privacy-placeholder-block"
+            }
+          ]
+        }
+      },
+      {
+        "id": "terms-en",
+        "slug": "terms-and-conditions",
+        "locale": "en",
+        "status": "draft",
+        "data": {
+          "title": "Terms of Sale and Delivery",
+          "content": [
+            {
+              "_type": "block",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "text": "EDITORIAL NOTE — NOT APPROVED TERMS. The current Danish page has separate sections for suppliers and members, covering subjects such as deliveries, invoices, membership, ordering, payment, collection, complaints, cancellations, and personal data. The page is dated September 2026. This is a description of the source, not a translation or statement of contractual terms. Obtain an authoritative English version and legal/operational review before publishing. Source: https://kbhff.dk/handelsbetingelser/",
+                  "_key": "terms-placeholder"
+                }
+              ],
+              "_key": "terms-placeholder-block"
+            }
+          ]
+        }
+      },
+      {
+        "id": "quick-start-guide-en",
+        "slug": "quick-start-guide",
+        "locale": "en",
+        "status": "draft",
+        "data": {
+          "title": "Quick Start Guide",
+          "content": [
+            {
+              "_type": "block",
+              "style": "normal",
+              "children": [
+                {
+                  "_type": "span",
+                  "text": "KBHFF members help distribute pre-ordered goods, usually by taking a regular volunteer shift or contributing through a shared working group. Orders are placed ahead of collection, which takes place at the member's department on Wednesday afternoon or evening. The live guide says weekly bag contents are posted before delivery and advises members to collect during opening hours and bring their reusable KBHFF bag. Confirm deadlines, procedures, and current links against the live guide before publishing. Source: https://kbhff.dk/medlem/quick-start-guide/",
+                  "_key": "quick-start-placeholder"
+                }
+              ],
+              "_key": "quick-start-placeholder-block"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
