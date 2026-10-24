@@ -1,25 +1,30 @@
-# EmDash Starter Template
+# KBHFF on EmDash
 
-A general-purpose starting point for building sites with [EmDash](https://github.com/emdash-cms/emdash). Runs on any Node.js server with SQLite and local file storage. Includes posts, pages, categories, and tags with minimal styling -- designed as a base you can build on rather than a finished theme.
+The KBHFF public site built with [EmDash](https://github.com/emdash-cms/emdash) on Astro, started from the EmDash starter template. Runs on any Node.js server with SQLite and local file storage. Plans and decisions live in [`design-docs/`](./design-docs/).
 
 ## What's Included
 
-- Posts with category and tag archives
-- Static pages via slug routing
-- Seed data with demo content
-- Minimal layout and styling
+- Danish (default) and English, with linked translations managed in EmDash
+- News with category and tag archives, and CMS pages
+- KBHFF components and an admin-only styleguide at `/styleguide`
+- Seed data with Danish starter content and English translations
 
 ## Pages
 
-| Page | Route |
-|---|---|
-| Homepage | `/` |
-| All posts | `/posts` |
-| Single post | `/posts/:slug` |
-| Category archive | `/category/:slug` |
-| Tag archive | `/tag/:slug` |
-| Static pages | `/:slug` |
-| 404 | fallback |
+Danish URLs have no prefix; English URLs are prefixed with `/en`.
+
+| Page | Danish | English |
+|---|---|---|
+| Home | `/` | `/en` |
+| News list | `/nyheder` | `/en/news` |
+| News list, filtered | `/nyheder?kategori=:slug&tag=:slug` | `/en/news?category=:slug&tag=:slug` |
+| News item | `/nyheder/:slug` | `/en/news/:slug` |
+| CMS page | `/:slug` | `/en/:slug` |
+| 404 | fallback (language from the URL) | |
+
+- **CMS pages** are served by `src/pages/[...slug].astro` (EmDash's i18n pattern). The news list's title and intro are the CMS pages with slug `nyheder` (Danish) and `news` (English).
+- **News** routes, filter parameter names and URLs are ours, in one table: `src/i18n/routes.ts`. The posts `urlPattern` is `/nyheder/{slug}`, so EmDash's own English news links (admin preview, "View") go to `/en/nyheder/:slug`, which redirects to `/en/news/:slug`.
+- **hreflang and sitemap for news:** news pages emit their own alternate links (`src/i18n/translations.ts`), and `src/pages/sitemap-posts.xml.ts` wraps EmDash's posts sitemap with the English URLs corrected. EmDash still decides what is published and what is hidden from search engines.
 
 ## Infrastructure
 
@@ -35,15 +40,16 @@ pnpm install
 pnpm dev
 ```
 
-Open http://localhost:4321/_emdash/admin and complete the setup wizard. EmDash runs database migrations and applies the starter seed during setup. The site is available at http://localhost:4321.
+Open http://localhost:4321/_emdash/admin and complete the setup wizard. EmDash runs database migrations and applies the starter seed during setup. The site is available at http://localhost:4321. No environment variables are needed for local development.
 
-## Want Cloudflare Instead?
+## Deployment
 
-See the [Cloudflare variant](../starter-cloudflare) for a version that deploys to Cloudflare Workers with D1 and R2.
+| Environment variable | Required | Purpose |
+|---|---|---|
+| `SITE_URL` (or `EMDASH_SITE_URL`) | Recommended in production | Public origin without a trailing slash, e.g. `https://kbhff.dk`. Read **at runtime** by EmDash for sitemap URLs when the admin **Site URL** setting is empty. Canonical and hreflang URLs in page heads use the admin Site URL, then the request's own origin. Also passed to Astro's `site` at build time if set. |
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/emdash-cms/templates/tree/main/starter-cloudflare)
+Set it in the server's environment (hosting platform or Docker), for both the build and the running server. No `.env` file is needed: Astro does not load `.env` into its config, and local development needs no variables.
 
 ## See Also
 
-- [All templates](../)
 - [EmDash documentation](https://docs.emdashcms.com/)

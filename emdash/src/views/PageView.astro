@@ -1,0 +1,33 @@
+---
+/** CMS page at `/{slug}` and `/en/{slug}`. Rendered by src/pages/[...slug].astro. */
+import type { ContentEntry, SeoMeta } from "emdash";
+import { PortableText } from "emdash/ui";
+import type { Page } from "../../emdash-env";
+import type { Locale } from "../i18n";
+import type { LanguageLinkTarget } from "../i18n/routes";
+import Base from "../layouts/Base.astro";
+
+interface Props {
+	page: ContentEntry<Page>;
+	locale: Locale;
+	seo: SeoMeta;
+	languageLink: LanguageLinkTarget;
+}
+
+const { page, locale, seo, languageLink } = Astro.props;
+---
+
+<Base
+	title={seo.title}
+	pageTitle={seo.ogTitle}
+	description={seo.description}
+	canonical={seo.canonical}
+	content={{ collection: "pages", id: page.data.id, slug: page.data.slug }}
+	locale={locale}
+	languageLink={languageLink}
+>
+	<article>
+		<h1 {...page.edit.title}>{page.data.title}</h1>
+		<PortableText value={page.data.content} />
+	</article>
+</Base>

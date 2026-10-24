@@ -127,7 +127,7 @@ These template parts are hand-made on every page that has them:
 | Live page or route | Live-site evidence reviewed (2026-10-22) | Content decision | Rendering / behavior decision |
 | --- | --- | --- | --- |
 | `/` (and `/forside`, which redirects to `/`) | The home page features selected recent news and a link to the news archive. | EmDash owns the news entries; featured posts are selected today by the `on:frontpage` tag. The home-page copy (welcome heading, four steps, video, calls to action) is hard-coded in `pages/front.php`, with no editor-managed copy. Decide whether to move this copy into EmDash (for example a `home` page entry or widget area) or keep it in the Astro template. | Astro owns the home-page layout and queries EmDash for featured posts and the current weekly bag. Redirect `/forside` to `/`. |
-| `/nyheder`, `/nyheder/:slug`, `/nyheder/page/:n`, `/nyheder/tag/:tag`, `/nyheder/tag/:tag/page/:n`, `/nyheder/tag/:tag/:slug` | The archive is a dated feed; articles include editorial text and sometimes English summaries. | Store articles in EmDash `posts` with a taxonomy for the legacy post tags, with locale variants where translations are maintained. | Astro owns archive, tag-archive and article templates, pagination, locale-aware links, and metadata. Make `/nyheder/:slug` the canonical article URL and redirect `/nyheder/tag/:tag/:slug` to it. |
+| `/nyheder`, `/nyheder/:slug`, `/nyheder/page/:n`, `/nyheder/tag/:tag`, `/nyheder/tag/:tag/page/:n`, `/nyheder/tag/:tag/:slug` | The archive is a dated feed; articles include editorial text and sometimes English summaries. | Store articles in EmDash `posts` with a taxonomy for the legacy post tags, with locale variants where translations are maintained. | Astro owns the news list (with category/tag filter parameters), article template, pagination, locale-aware links, and metadata. `/nyheder/:slug` is the article URL (`/en/news/:slug` in English). Decided (2026-10-24): the legacy tag and page URLs are not mapped or redirected. |
 | `/om`, `/english` | `/om` is organization overview, values, and history. `/english` is a substantial English overview that also includes the principles and membership/product information. | EmDash `pages`; use related translated entries for maintained locale variants. Each is a single Janitor page (`page:about`, `page:english`) with its own sub-menu (`sub-about`, `sub-english`). `/english/:slug` sub-routes are disabled in the current code. | Astro renders the page entries. A route can be nested or use an explicit path mapping; do not hard-code long-form copy in Astro. |
 | `/om/10-grundprincipper` | A long-form, ten-section values statement, revised December 2024; corresponding English material exists in `/english`. | EmDash page content; translate/review as a linked locale entry. | Astro generic CMS page template. |
 | `/om/organisationen` | Long-form description of governance, departments, warehouse, purchasing and IT groups; includes operational staffing details. | EmDash page content, with review because several facts can change. | Astro generic CMS page template. |
@@ -216,10 +216,13 @@ department entries are landing-page copy only, not question or branch records;
 the weekly-bag entry contains no fabricated week data. No news stories or
 transactional workflows were duplicated.
 
-The current app has no Astro i18n configuration. The English draft entries use
-the database's existing English default locale and remain drafts; enabling
-multi-locale routing and deciding locale URL behavior are separate steps before
-public rendering.
+**Update (2026-10-24):** Astro i18n is now configured with Danish as the
+default (see [phase 1](#1-research-and-decide-i18n)), and the local database
+was found empty of content, so these drafts are no longer present. Do **not**
+re-apply `seed/english-page-drafts.json` as it is: its entries have no
+`locale`, so they would now be created as Danish entries. Before reusing it,
+add `"locale": "en"` to each entry and link each one to its Danish source with
+`translationOf` once that source exists.
 
 ## Recommended implementation phases
 
@@ -241,17 +244,80 @@ public rendering.
 
   | Language | Code | Default? | URL | Legacy URL |
   | --- | --- | --- | --- | --- |
-  | Danish | `da` | Yes | `/om`, `/nyheder/...` (no prefix) | Unchanged |
+  | Danish | `da` | Yes | `/om`, `/nyheder/...` (no prefix) | Mostly unchanged; see below |
   | English | `en` | No | `/en/about`, `/en/...` (prefix added by Astro) | `/english` → redirect to `/en` |
 
   EmDash's "do not prefix the default locale" rule is about Danish only:
   `/da/...` would make `/_emdash/admin` return 404. Prefixing English is
   Astro's default behaviour and is required. See
   [the i18n research note](./00-RESEARCH-I18N-EMDASH-ASTRO.md#configure-locale-routing-safely).
+
+  The default locale is **fixed** in `src/i18n/locales.ts` (imported by
+  `astro.config.mjs`), not an environment setting: it decides which route
+  folder serves which language. Developers who prefer English use `/en/…`;
+  the language banner suggests it to browsers that prefer another language.
+  The only environment variable is `SITE_URL`, required in production and
+  unset in development (see the EmDash app's README, "Deployment").
+- **Decided (2026-10-24): English URLs use English words, with the least
+  custom code.** EmDash builds sitemap, hreflang and preview URLs from one
+  `urlPattern` per collection plus the locale prefix, so:
+
+  | Kind | Danish | English | Rule |
+  | --- | --- | --- | --- |
+  | Home | `/` | `/en` | Route files |
+  | News list (code route, intro from CMS pages `nyheder` / `news`) | `/nyheder` | `/en/news` | Translated segment, route files |
+  | News list filtered by category and/or tag | `/nyheder?kategori=…&tag=…` | `/en/news?category=…&tag=…` | Translated parameter names; values are the term slugs per language |
+  | Page (CMS, `urlPattern` `/{slug}`) | `/om` | `/en/about` | Catch-all route; the slug is translated per entry |
+  | News item (CMS content, our route; `urlPattern` `/nyheder/{slug}`) | `/nyheder/velkommen` | `/en/news/welcome` | Translated segment, route files; the slug is translated per entry |
+
+- **Decided (2026-10-24): news URLs are ours; everything else is EmDash's.**
+  Only the URL shape is custom; content and slugs stay in the CMS.
+  - One pure table, `src/i18n/routes.ts`: path `nyheder` ↔ `news`, parameters
+    `kategori` ↔ `category`, `tag` ↔ `tag`, and the news URL functions used by
+    the routes, hreflang and the sitemap.
+  - EmDash builds `/en/nyheder/…` from the single posts `urlPattern` (admin
+    preview, "View"); `src/pages/en/nyheder/[slug].astro` redirects those to
+    `/en/news/…`, keeping the query (`?_preview`).
+  - News items do not pass `content` to EmDash's head, so EmDash emits no
+    hreflang for them; we emit alternates from `getHreflangAlternates()` with
+    the URLs rebuilt (it still decides published / hidden from search engines).
+    Robots comes from `getSeoMeta()`. A native EmDash plugin was considered and
+    rejected: it must be a separate npm package.
+  - `src/pages/sitemap-posts.xml.ts` wraps EmDash's posts sitemap and corrects
+    the English URLs; it uses EmDash's internal route export
+    (`emdash/internal/routes/…`), so check it on EmDash upgrades.
+  - Category and tag archive pages were dropped in favour of the news list
+    filter. The legacy URL mapping (`/nyheder/tag/…`, `/nyheder/page/:n`) is
+    not carried over and has no redirects. The `core:categories` sidebar widget
+    was removed from the seed because it links to `/category/{slug}`.
 - Still open: whether English falls back to Danish content when a page has no
   translation (`fallback: { en: "da" }`). Start without a fallback.
-- Prototype EmDash admin, content routing, language switching, and sitemap
-  behavior with Danish as the default locale before configuring the live model.
+- **Open problem (2026-10-24): EmDash's built-in widgets are not
+  language-aware.** The news article page renders the CMS widget area
+  `sidebar` (`<WidgetArea name="sidebar" />` in `src/views/NewsArticleView.astro`;
+  contents managed in the admin under Widgets, seeded from `seed/seed.json`).
+  Its `core:recent-posts` widget (EmDash 1.3.1,
+  `emdash/src/components/widgets/RecentPosts.astro`):
+  - queries posts without `locale`, so English pages list Danish news;
+  - links to `/posts/{id}` unless a `urlTemplate` prop is set; that route does
+    not exist here (`urlTemplate: "/nyheder/:slug"` would fix Danish links
+    only; English would go through the `/en/nyheder` redirect);
+  - has one title for all languages, since widget areas are not per language.
+  The widget's props (count, thumbnails, date, `urlTemplate`) cannot fix the
+  language filter. Options: (A) remove the widget area and seed widgets until
+  the article sidebar is designed (legacy: shortcuts, newsletter, weekly bag),
+  then build it from our translated components; (B) our own "latest news"
+  list in `NewsArticleView`; (C) keep the CMS sidebar but allow only widgets
+  that work in both languages (Portable Text content; menu widgets need
+  checking, since `WidgetRenderer` calls `getMenu()` without a locale).
+  Recommended: A. Not yet decided.
+- **Implemented (2026-10-24)** in the EmDash app: Astro `i18n` config,
+  a catch-all route for CMS pages, Danish and English news routes (thin
+  wrappers around shared views in `src/views/`), locale-aware queries, menus
+  and search, `src/i18n/routes.ts` for news URLs and filters, and
+  `src/i18n/translations.ts` for language links and news hreflang. `seed/seed.json` holds
+  linked Danish and English starter content, categories, tags and a menu per
+  language.
 
 ### 2. Complete and classify the inventory
 

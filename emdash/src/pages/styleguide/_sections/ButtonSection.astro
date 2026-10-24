@@ -42,12 +42,12 @@ const text = {
 
 <h3>Variants and sizes</h3>
 <div class="cluster">
-	<Button href="#buttons">{text.primary}</Button>
-	<Button href="#buttons" variant="secondary">{text.secondary}</Button>
-	<Button href="#buttons" variant="warning">{text.warning}</Button>
-	<Button href="#buttons" variant="danger">{text.danger}</Button>
-	<Button href="#buttons" size="sm">{text.small}</Button>
-	<Button href="#buttons" variant="secondary" size="sm">{text.small}</Button>
+	<Button href="#button">{text.primary}</Button>
+	<Button href="#button" variant="secondary">{text.secondary}</Button>
+	<Button href="#button" variant="warning">{text.warning}</Button>
+	<Button href="#button" variant="danger">{text.danger}</Button>
+	<Button href="#button" size="sm">{text.small}</Button>
+	<Button href="#button" variant="secondary" size="sm">{text.small}</Button>
 </div>
 
 <h3>Link or button</h3>
@@ -57,7 +57,7 @@ const text = {
 	<code>commandfor</code> pass through.
 </p>
 <div class="cluster">
-	<Button href="#buttons" variant="secondary">{text.link}</Button>
+	<Button href="#button" variant="secondary">{text.link}</Button>
 	<Button variant="secondary">{text.button}</Button>
 	<Button variant="secondary">
 		<Icon name="menu" size={20} />
@@ -74,5 +74,5 @@ const text = {
 	<Button variant="secondary" aria-pressed="false">{text.notPressed}</Button>
 	<Button variant="secondary" aria-pressed="true">{text.pressed}</Button>
 	<Button variant="secondary" aria-expanded="true">{text.expanded}</Button>
-	<Button href="#buttons" variant="secondary" aria-current="page">{text.current}</Button>
+	<Button href="#button" variant="secondary" aria-current="page">{text.current}</Button>
 </div>

@@ -1,0 +1,11 @@
+---
+/**
+ * The posts urlPattern is `/nyheder/{slug}`, so EmDash links English news
+ * (admin preview, "View" links) to `/en/nyheder/{slug}`. Send those to the
+ * English URL, keeping the query string (for example `?_preview=…`).
+ */
+import { newsItemPath } from "../../../i18n/routes";
+
+const slug = Astro.params.slug ?? "";
+return Astro.redirect(`${newsItemPath(slug, "en")}${Astro.url.search}`, 301);
+---

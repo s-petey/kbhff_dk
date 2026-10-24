@@ -16,6 +16,30 @@ const da: Messages = {
 		menu: "Menu", // REVIEW
 		mainNavigation: "Hovedmenu", // REVIEW
 	},
+	news: {
+		title: "Nyheder", // legacy: www/nyheder.php page title
+		latest: "Seneste nyheder", // REVIEW
+		empty: "Ingen nyheder", // legacy: posts/posts.php
+		emptyFiltered: "Ingen nyheder her endnu.", // REVIEW
+		filters: "Filtrér nyheder", // REVIEW
+		categories: "Kategorier", // REVIEW
+		tags: "Tags", // REVIEW
+		allNews: "Alle nyheder", // REVIEW
+		pagination: "Sider", // REVIEW
+		firstPage: "Første side", // REVIEW
+		nextPage: "Næste side", // legacy: weeklybag/list.php
+	},
+	notFound: {
+		title: "Hov! Siden findes ikke", // REVIEW: legacy pages/view.php used "Hov!" + "Der skete en fejl."
+		body: "Vi kunne ikke finde den ønskede side.", // legacy: pages/view.php
+		home: "Gå til forsiden", // REVIEW
+	},
+	languageBanner: {
+		message: "Denne side findes også på dansk.", // REVIEW
+		action: "Se på dansk", // REVIEW
+		dismiss: "Luk", // legacy: www/js/lib/desktop/types/m-user_profile.js
+		region: "Sprogforslag", // REVIEW
+	},
 	shortcuts: {
 		title: "Genveje", // legacy: pages/view.php sidebar
 		takeShift: "Ta' en vagt", // legacy: pages/view.php sidebar

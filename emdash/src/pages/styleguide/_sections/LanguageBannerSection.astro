@@ -1,0 +1,32 @@
+---
+import Button from "../../../components/kbhff/Button.astro";
+import LanguageBanner from "../../../components/kbhff/LanguageBanner.astro";
+---
+
+<p class="lead">
+	Every page has one, hidden. It appears as a bar at the bottom of the screen when the browser's first language does
+	not match the page, written in the <em>target</em> language. It never redirects, and closing it is remembered. The
+	previews below are rendered in place; the real one floats at the bottom.
+</p>
+
+<h3>Danish page, browser prefers another language</h3>
+<LanguageBanner pageLocale="da" languageLink={{ locale: "en", href: "#language-banner" }} preview />
+
+<h3>English page, browser prefers Danish</h3>
+<LanguageBanner pageLocale="en" languageLink={{ locale: "da", href: "#language-banner" }} preview />
+
+<h3>The real banner</h3>
+<p class="lead">
+	Shows this page's own banner at the bottom of the screen. To test the automatic behaviour, change your browser's
+	preferred language and clear <code>kbhff-language-banner-dismissed</code> from localStorage.
+</p>
+<div>
+	<Button variant="secondary" data-show-language-banner>Show this page's banner</Button>
+</div>
+
+<script>
+	document.querySelector("[data-show-language-banner]")?.addEventListener("click", () => {
+		const banner = document.querySelector<HTMLElement>("[data-language-banner]");
+		if (banner) banner.hidden = false;
+	});
+</script>

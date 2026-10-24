@@ -189,16 +189,20 @@ Narrow:          [Brand]                                  🌐 English  [☰ Men
 every page (the header's `LanguageLink`); each page decides where it points
 through `Base`'s `languageLink` prop (`{ locale, href }`):
 
-| Page | `languageLink` |
+| Page | `languageLink` (URLs from `src/i18n/routes.ts`) |
 | --- | --- |
-| Content pages (after i18n routing) | The same entry in the other language via EmDash `getTranslations()` (published only); the other language's home page when there is no translation |
-| Code-built routes (after i18n routing) | `getRelativeLocaleUrl()` for the same route |
+| CMS pages and news items | The published translation (`entryLanguageLink()` in `src/i18n/translations.ts`, from `getTranslations()`); the other language's home page or news list when there is no translation |
+| News list | The other language's news list, with the filters when every filter term has a translation (same translation group) |
 | Styleguide | Its own `?lang=` variant (chrome stays English; components and samples switch) |
-| Not set | The other language's home page (`/` or `/en/`, from `src/utils/locale-links.ts`) |
+| Not set (home, 404) | The other language's home page |
 
-**Temporary:** Astro i18n routing is not configured yet, so pages do not set
-`languageLink` and `/en/` does not exist yet. Once routing is configured,
-content pages set it as above and the locale is passed to `getMenu()`.
+The same target drives the **language banner** (`LanguageBanner`, in
+`Base.astro`): a fixed bar at the bottom, in the target language, shown when
+the browser's first language (`navigator.languages`) does not match the page
+(non-Danish browser on a Danish page; Danish browser on an English page). It
+never redirects, runs in the browser so pages stay cacheable, and remembers
+"close" in `localStorage` (`kbhff-language-banner-dismissed`). It is not a
+dialog, so the one-dialog rule does not apply.
 
 `light-dark()` is Baseline 2024 (Chrome 123, Firefox 120, Safari 17.5). Older
 browsers ignore the tokens and fall back to browser default colours: readable
@@ -289,17 +293,21 @@ variants) and **the site owns interface strings**.
 | Messages | `src/i18n/messages/en.ts`, `da.ts` | English defines the shape (`Messages` type); every locale must provide the same keys or the type check fails. Each Danish string is marked `legacy: <template>` (wording from the PHP theme) or `REVIEW` (new translation; needs a Danish speaker's approval before launch). |
 | Helpers | `src/i18n/index.ts` | `getMessages(locale)`, `format(template, values)` for `{name}` placeholders, `formatDate(locale, date)` via `Intl`. |
 | Components | `src/components/kbhff/*` | Take `locale?: Locale`, defaulting to `Astro.currentLocale` and then the site default. No hard-coded copy. |
-| Layout | `src/layouts/Base.astro` | Sets `<html lang>` and translates the search placeholder. |
+| Layout | `src/layouts/Base.astro` | Sets `<html lang>`, loads the menu for the page's language, renders the language link and banner. |
+| Routes | `src/i18n/routes.ts` | Pure table of our URLs: home, news list (with translated filter parameters) and news items. `src/i18n/translations.ts` holds the EmDash-backed language links and news hreflang. |
+| Views | `src/views/` | Each page's markup once (`HomeView`, `NewsListView`, `PageView`, `NewsArticleView`). CMS pages come from the catch-all `src/pages/[...slug].astro`; news items from `loadNewsItem.ts`, shared by the Danish and English route files. |
 
-Astro i18n routing is **not configured yet**, so `Astro.currentLocale` is
-undefined and components fall back to Danish unless a page passes `locale`.
-The URL structure is decided (see phase 1 of the migration plan): Danish
-(`da`, default) is unprefixed at `/om`; English (`en`) is prefixed at
-`/en/about`. EmDash's "do not prefix the default locale" applies to Danish
-only. The fallback policy is still open. Locale codes are language codes
-(`da`, not `dk`). To add a language: add its code to
-`locales`, add `messages/<code>.ts` typed as `Messages`, and register it in
-`src/i18n/index.ts`.
+Astro i18n routing **is configured** (`astro.config.mjs` imports `locales`
+and `defaultLocale` from `src/i18n/locales.ts`), so `Astro.currentLocale`
+comes from the URL and components use it by default. URL structure and the
+reasoning are in phase 1 of the migration plan: Danish (`da`, default) is
+unprefixed; English (`en`) is prefixed with `/en/`; code-built routes have
+translated segments, CMS entries use language-neutral `urlPattern`s with
+translated slugs. The fallback policy is still open. Locale codes are
+language codes (`da`, not `dk`). To add a language: add its code to
+`locales`, add `messages/<code>.ts` typed as `Messages`, register it in
+`src/i18n/index.ts`, add its segments in `src/i18n/routes.ts`, and add its
+route folder (`src/pages/<code>/`).
 
 Dev and admin pages default to English. The styleguide chrome is English;
 the site header's language link switches it between `?lang=en` and
@@ -377,8 +385,9 @@ build. Not yet verified: access with a real admin session.
   typography, icons, buttons (variants, link vs button, selected states),
   card tones, dialogs (including a demo of the one-at-a-time rule), site
   header (`LanguageLink`, `ThemeSelect`; `SiteHeader` itself is the page's
-  own header), and every other component with its main variants and empty
-  states.
+  own header), language banner (both variants previewed in place via its
+  `preview` prop, plus a button that shows the page's real banner), and every
+  other component with its main variants and empty states.
 - **Rule: every component in `src/components/kbhff/` is represented**, with
   each variant and state it supports. Add or update the styleguide section in
   the same change as the component.
@@ -393,16 +402,28 @@ build. Not yet verified: access with a real admin session.
 
 ```
 src/pages/styleguide/
-├── index.astro              access check, intro, section list
-├── _components/Section.astro    section wrapper: anchor, heading, spacing
-└── _sections/*.astro        one file per section: markup + its sample content
+├── index.astro                      access check, intro, grouped section list
+├── _components/Section.astro        section wrapper: anchor, heading, component names, spacing
+└── _sections/<Title>Section.astro   one file per section: markup + its sample content
 ```
 
-Folders starting with `_` are not routes. To add a section, create a file in
-`_sections/` and add one entry (`id`, `title`, component, `localized`) to the
-`sections` list in `index.astro`; that list drives both the navigation and the
-page. Sections with sample text keep a small `en`/`da` object at the top of
-the file; everything else is plain markup.
+Folders starting with `_` are not routes. To add a section, create
+`_sections/<Title>Section.astro` and add one entry (`title`, `components`,
+section file, `localized`) to the right group in `index.astro`; the groups
+drive both the navigation and the page.
+
+**Naming conventions:**
+
+| Item | Rule | Example |
+| --- | --- | --- |
+| Section title (navigation and heading) | Plain language, sentence case; singular unless the section covers several components | "Article card", "FAQ group", "Sidebar boxes" |
+| Component names | Exact names, listed under the heading as code | `ArticleCard` |
+| Anchor | Derived from the title | `#article-card` |
+| Section file | `<Title>Section.astro` in PascalCase | `ArticleCardSection.astro` |
+| Order | *Foundations* (Colours, Typography, Layout, Icons), then *Components* alphabetically | — |
+
+Sections with sample text keep a small `en`/`da` object at the top of the
+file; everything else is plain markup.
 
 Later, for editors: a seeded draft page using every block type, viewed
 through EmDash's "View on site".

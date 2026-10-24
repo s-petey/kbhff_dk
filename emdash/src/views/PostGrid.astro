@@ -1,0 +1,39 @@
+---
+/** Grid of news cards for the home page and the news list. */
+import type { ContentEntry, TaxonomyTerm } from "emdash";
+import { Image } from "emdash/ui";
+import type { Post } from "../../emdash-env";
+import ArticleCard from "../components/kbhff/ArticleCard.astro";
+import type { Locale } from "../i18n";
+import { newsItemPath } from "../i18n/routes";
+
+interface Props {
+	posts: ContentEntry<Post>[];
+	locale: Locale;
+	/** Tags per post id, from one batched `getTermsForEntries()` call. */
+	tagsByEntry?: Map<string, TaxonomyTerm[]>;
+}
+
+const { posts, locale, tagsByEntry } = Astro.props;
+---
+
+<div class="auto-grid">
+	{
+		posts.map(
+			({ data: post }) =>
+				post.slug &&
+				post.publishedAt && (
+					<ArticleCard
+						href={newsItemPath(post.slug, locale)}
+						title={post.title}
+						excerpt={post.excerpt}
+						date={post.publishedAt}
+						tags={(tagsByEntry?.get(post.id) ?? []).map((tag) => tag.label)}
+						locale={locale}
+					>
+						{post.featured_image && <Image slot="media" image={post.featured_image} />}
+					</ArticleCard>
+				),
+		)
+	}
+</div>

@@ -4,9 +4,12 @@ import "../styles/layout.css";
 import { getMenuWithCacheHint, getSiteSettingsWithCacheHint } from "emdash";
 import { EmDashHead, EmDashBodyStart, EmDashBodyEnd } from "emdash/ui";
 import { createPublicPageContext } from "emdash/page";
+import LanguageBanner from "../components/kbhff/LanguageBanner.astro";
 import SiteHeader from "../components/kbhff/SiteHeader.astro";
 import ThemeScript from "../components/kbhff/ThemeScript.astro";
-import { resolveLocale, type Locale } from "../i18n";
+import { otherLocale, resolveLocale, type Locale } from "../i18n";
+import { homePath, type LanguageLinkTarget } from "../i18n/routes";
+import type { Alternate } from "../i18n/translations";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
 
 interface Props {
@@ -15,12 +18,24 @@ interface Props {
 	description?: string | null;
 	image?: string | null;
 	canonical?: string | null;
-	/** Pass content reference for plugin page contributions on content pages */
+	/** `robots` from `getSeoMeta()` ("noindex, nofollow" when hidden from search engines). */
+	robots?: string | null;
+	/**
+	 * Content reference: plugin page contributions, the SEO panel overlay and
+	 * EmDash's hreflang links. News items leave it out and pass `alternates`
+	 * instead, since EmDash would build `/en/nyheder/…` URLs.
+	 */
 	content?: { collection: string; id: string; slug?: string | null };
+	/** hreflang alternates to render instead of EmDash's (see src/i18n/translations.ts). */
+	alternates?: Alternate[];
 	/** Interface language; defaults to the request locale, then the site default. */
 	locale?: Locale;
-	/** Target of the header's language link; see SiteHeader. Defaults to the other language's home page. */
-	languageLink?: { locale: Locale; href: string };
+	/**
+	 * Where the language link and language banner point: the same page in the
+	 * other language. Views set it (see src/i18n/routes.ts); defaults to the
+	 * other language's home page.
+	 */
+	languageLink?: LanguageLinkTarget;
 }
 
 const {
@@ -29,13 +44,15 @@ const {
 	description,
 	image,
 	canonical,
+	robots,
 	content,
+	alternates = [],
 	locale = resolveLocale(Astro.currentLocale),
-	languageLink,
+	languageLink = { locale: otherLocale(locale), href: homePath(otherLocale(locale)) },
 } = Astro.props;
 const [settingsResult, menuResult] = await Promise.all([
 	getSiteSettingsWithCacheHint(),
-	getMenuWithCacheHint("primary"),
+	getMenuWithCacheHint("primary", { locale }),
 ]);
 if (Astro.cache?.enabled) {
 	Astro.cache.set(settingsResult.cacheHint);
@@ -62,6 +79,7 @@ const pageCtx = createPublicPageContext({
 	description: pageDescription,
 	canonical,
 	image,
+	seo: robots ? { robots } : undefined,
 	content,
 	siteName: siteTitle,
 });
@@ -76,6 +94,7 @@ const pageCtx = createPublicPageContext({
 		<ThemeScript />
 		<title>{fullTitle}</title>
 		<EmDashHead page={pageCtx} />
+		{alternates.map(({ hreflang, href }) => <link rel="alternate" hreflang={hreflang} href={href} />)}
 	</head>
 	<body>
 		<EmDashBodyStart page={pageCtx} />
@@ -91,6 +110,8 @@ const pageCtx = createPublicPageContext({
 		<main>
 			<slot />
 		</main>
+
+		<LanguageBanner pageLocale={locale} languageLink={languageLink} />
 
 		<EmDashBodyEnd page={pageCtx} />
 	</body>

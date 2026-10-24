@@ -9,7 +9,7 @@ interface Props {
 }
 
 const { locale } = Astro.props;
-const shortcutHrefs = { takeShift: "#sidebar", orderBag: "#sidebar", becomeMember: "#sidebar", logIn: "#sidebar" };
+const shortcutHrefs = { takeShift: "#sidebar-boxes", orderBag: "#sidebar-boxes", becomeMember: "#sidebar-boxes", logIn: "#sidebar-boxes" };
 const bag = {
 	en: { vegetables: "Vegetables", fruit: "Fruit", items: ["Example: carrots", "Example: Brussels sprouts", "Example: potatoes", "Example: apples"] },
 	da: { vegetables: "Grøntsager", fruit: "Frugt", items: ["Eksempel: gulerødder", "Eksempel: rosenkål", "Eksempel: kartofler", "Eksempel: æbler"] },
@@ -27,7 +27,7 @@ const bag = {
 	<ShortcutsBox audience="member" hrefs={shortcutHrefs} locale={locale} />
 	<NewsletterBox locale={locale} />
 
-	<WeeklyBagBox week={44} year={2026} pickupDate={new Date("2026-10-28T15:00:00Z")} href="#sidebar" locale={locale}>
+	<WeeklyBagBox week={44} year={2026} pickupDate={new Date("2026-10-28T15:00:00Z")} href="#sidebar-boxes" locale={locale}>
 		<h4>{bag.vegetables}</h4>
 		<ul>
 			<li>{bag.items[0]}</li>
@@ -40,5 +40,5 @@ const bag = {
 		</ul>
 	</WeeklyBagBox>
 
-	<WeeklyBagBox href="#sidebar" locale={locale} />
+	<WeeklyBagBox href="#sidebar-boxes" locale={locale} />
 </div>

@@ -1,0 +1,171 @@
+---
+/**
+ * News list, shared by `/nyheder` and `/en/news`.
+ *
+ * - Title and intro come from the CMS page whose slug is the news path segment
+ *   (`nyheder` in Danish, `news` in English; linked as translations).
+ * - Filter by category and/or tag with translated query parameters:
+ *   `/nyheder?kategori=…&tag=…`, `/en/news?category=…&tag=…`. Values are the
+ *   term slugs in the page's language; unknown values are ignored.
+ * - The language link keeps the filters when every filter term has a
+ *   translation (same translation group), otherwise it links to the plain list.
+ */
+import { getEmDashCollection, getEmDashEntry, getTaxonomyTermsWithCacheHint, getTermsForEntries } from "emdash";
+import type { TaxonomyTerm } from "emdash";
+import { PortableText } from "emdash/ui";
+import Button from "../components/kbhff/Button.astro";
+import { getMessages, otherLocale, resolveLocale } from "../i18n";
+import {
+	newsFilterParams,
+	newsListPath,
+	newsSegment,
+	readNewsFilters,
+	type NewsFilter,
+	type NewsFilters,
+} from "../i18n/routes";
+import Base from "../layouts/Base.astro";
+import PostGrid from "./PostGrid.astro";
+
+const locale = resolveLocale(Astro.currentLocale);
+const target = otherLocale(locale);
+const t = getMessages(locale).news;
+const cursor = Astro.url.searchParams.get("cursor") || undefined;
+const taxonomies = Object.keys(newsFilterParams) as NewsFilter[];
+const groupLabels: Record<NewsFilter, string> = { category: t.categories, tag: t.tags };
+
+const [introResult, ...termResults] = await Promise.all([
+	getEmDashEntry("pages", newsSegment[locale], { locale }),
+	...taxonomies.map((taxonomy) => getTaxonomyTermsWithCacheHint(taxonomy, { locale })),
+]);
+const intro = introResult.entry;
+const terms = Object.fromEntries(taxonomies.map((taxonomy, index) => [taxonomy, termResults[index]!.data])) as Record<
+	NewsFilter,
+	TaxonomyTerm[]
+>;
+
+// Keep only filters that name an existing term.
+const filters: NewsFilters = {};
+const activeTerms: [NewsFilter, TaxonomyTerm][] = [];
+for (const [taxonomy, slug] of Object.entries(readNewsFilters(Astro.url.searchParams, locale)) as [NewsFilter, string][]) {
+	const term = terms[taxonomy].find((item) => item.slug === slug);
+	if (term) {
+		filters[taxonomy] = slug;
+		activeTerms.push([taxonomy, term]);
+	}
+}
+
+const {
+	entries: posts,
+	cacheHint,
+	nextCursor,
+} = await getEmDashCollection("posts", {
+	locale,
+	where: filters,
+	orderBy: { published_at: "desc" },
+	limit: 20,
+	cursor,
+});
+if (Astro.cache?.enabled) {
+	Astro.cache.set(introResult.cacheHint);
+	for (const result of termResults) Astro.cache.set(result.cacheHint);
+	Astro.cache.set(cacheHint);
+}
+
+// One batched query for every post's tags instead of one per post.
+const tagsByEntry = await getTermsForEntries(
+	"posts",
+	posts.map((post) => post.data.id),
+	"tag",
+);
+
+// The same filters in the other language when every filter term is translated,
+// otherwise the plain list. Only filtered views need the other language's terms.
+let targetFilters: NewsFilters = {};
+for (const [taxonomy, term] of activeTerms) {
+	const other = await getTaxonomyTermsWithCacheHint(taxonomy, { locale: target, includeCounts: false });
+	if (Astro.cache?.enabled) Astro.cache.set(other.cacheHint);
+	const match = term.translationGroup && other.data.find((item) => item.translationGroup === term.translationGroup);
+	if (!match) {
+		targetFilters = {};
+		break;
+	}
+	targetFilters[taxonomy] = match.slug;
+}
+
+const title = intro?.data.title ?? t.title;
+const filterGroups = taxonomies.map((taxonomy) => ({
+	taxonomy,
+	label: groupLabels[taxonomy],
+	terms: terms[taxonomy].filter((term) => (term.count ?? 0) > 0),
+}));
+const filtered = activeTerms.length > 0;
+---
+
+<Base title={title} locale={locale} languageLink={{ locale: target, href: newsListPath(target, targetFilters) }}>
+	<div class="stack news">
+		<h1 {...intro?.edit.title}>{title}</h1>
+		{intro && <PortableText value={intro.data.content} />}
+
+		<nav class="stack filters" aria-label={t.filters}>
+			<div class="cluster">
+				<Button href={newsListPath(locale)} variant="secondary" size="sm" aria-current={filtered ? undefined : "page"}>
+					{t.allNews}
+				</Button>
+			</div>
+			{
+				filterGroups.map(
+					({ taxonomy, label, terms: groupTerms }) =>
+						groupTerms.length > 0 && (
+							<div class="cluster" role="group" aria-label={label}>
+								{groupTerms.map((term) => {
+									const active = filters[taxonomy] === term.slug;
+									// The active term's link removes that filter; others replace it.
+									const href = newsListPath(locale, { ...filters, [taxonomy]: active ? undefined : term.slug });
+									return (
+										<Button href={href} variant="secondary" size="sm" aria-current={active ? "true" : undefined}>
+											{term.label}
+										</Button>
+									);
+								})}
+							</div>
+						),
+				)
+			}
+		</nav>
+
+		{
+			posts.length > 0 ? (
+				<PostGrid posts={posts} locale={locale} tagsByEntry={tagsByEntry} />
+			) : (
+				<p class="text-muted">{filtered ? t.emptyFiltered : t.empty}</p>
+			)
+		}
+
+		{
+			(cursor || nextCursor) && (
+				<nav class="cluster" aria-label={t.pagination}>
+					{cursor && (
+						<Button href={newsListPath(locale, filters)} variant="secondary">
+							{t.firstPage}
+						</Button>
+					)}
+					{nextCursor && (
+						<Button href={newsListPath(locale, filters, nextCursor)} variant="secondary">
+							{t.nextPage}
+						</Button>
+					)}
+				</nav>
+			)
+		}
+	</div>
+</Base>
+
+<style>
+	.news {
+		--stack-gap: 1.5rem;
+	}
+
+	.filters {
+		--stack-gap: 0.75rem;
+	}
+</style>

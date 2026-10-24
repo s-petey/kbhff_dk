@@ -1,9 +1,25 @@
 ---
+/**
+ * 404 for both languages. Routes reach it through `Astro.rewrite("/404")`, so
+ * the language comes from the original URL (`Astro.originPathname`):
+ * `/en/...` shows the English page, everything else Danish.
+ */
+import Button from "../components/kbhff/Button.astro";
+import { getMessages, resolveLocale } from "../i18n";
+import { homePath } from "../i18n/routes";
 import Base from "../layouts/Base.astro";
+
+const firstSegment = Astro.originPathname.split("/")[1];
+const locale = resolveLocale(firstSegment);
+const t = getMessages(locale).notFound;
 ---
 
-<Base title="Not Found">
-	<h1>Page not found</h1>
-	<p>The page you're looking for doesn't exist.</p>
-	<a href="/">Go home</a>
+<Base title={t.title} locale={locale}>
+	<div class="stack">
+		<h1>{t.title}</h1>
+		<p class="lead">{t.body}</p>
+		<div>
+			<Button href={homePath(locale)}>{t.home}</Button>
+		</div>
+	</div>
 </Base>

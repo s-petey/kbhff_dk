@@ -7,31 +7,34 @@
  * sample content. The switch is the site header's language link, as on
  * every other page; this page only tells it where to point.
  *
- * Each section lives in ./_sections/ with its own markup and placeholder
- * content; `sections` below drives both the navigation and the page.
+ * Each section lives in ./_sections/<Title>Section.astro with its own markup
+ * and placeholder content; `groups` below drives both the navigation and the
+ * page. Naming: plain-language, sentence-case titles ("Article card"); the
+ * exact component names go in `components`; the anchor is derived from the
+ * title. Foundations first, then components in alphabetical order.
  * See design-docs/20-KBHFF-DESIGN-SYSTEM-PLAN.md.
  */
 import Button from "../../components/kbhff/Button.astro";
 import Card from "../../components/kbhff/Card.astro";
-import { devLocale, localeNames, resolveLocale } from "../../i18n";
+import { devLocale, localeNames, otherLocale, resolveLocale } from "../../i18n";
 import Base from "../../layouts/Base.astro";
 import { canViewAdminTools } from "../../utils/admin-access";
-import { otherLocale } from "../../utils/locale-links";
 import Section from "./_components/Section.astro";
-import Articles from "./_sections/Articles.astro";
-import Banners from "./_sections/Banners.astro";
-import Buttons from "./_sections/Buttons.astro";
-import Cards from "./_sections/Cards.astro";
-import Colours from "./_sections/Colours.astro";
-import Departments from "./_sections/Departments.astro";
-import Dialogs from "./_sections/Dialogs.astro";
-import Faq from "./_sections/Faq.astro";
-import Icons from "./_sections/Icons.astro";
-import Layout from "./_sections/Layout.astro";
-import SidebarBoxes from "./_sections/SidebarBoxes.astro";
+import ArticleCardSection from "./_sections/ArticleCardSection.astro";
+import BannerSection from "./_sections/BannerSection.astro";
+import ButtonSection from "./_sections/ButtonSection.astro";
+import CardSection from "./_sections/CardSection.astro";
+import ColoursSection from "./_sections/ColoursSection.astro";
+import DepartmentCardSection from "./_sections/DepartmentCardSection.astro";
+import DialogSection from "./_sections/DialogSection.astro";
+import FaqGroupSection from "./_sections/FaqGroupSection.astro";
+import IconsSection from "./_sections/IconsSection.astro";
+import LanguageBannerSection from "./_sections/LanguageBannerSection.astro";
+import LayoutSection from "./_sections/LayoutSection.astro";
+import SidebarBoxesSection from "./_sections/SidebarBoxesSection.astro";
 import SiteHeaderSection from "./_sections/SiteHeaderSection.astro";
 import StepsSection from "./_sections/StepsSection.astro";
-import Typography from "./_sections/Typography.astro";
+import TypographySection from "./_sections/TypographySection.astro";
 
 if (!canViewAdminTools(Astro.locals)) {
 	return Astro.rewrite("/404");
@@ -45,22 +48,47 @@ const locale = resolveLocale(Astro.url.searchParams.get("lang"), devLocale);
 const alternateLocale = otherLocale(locale);
 
 // `localized`: the section shows sample content in the selected language.
-const sections = [
-	{ id: "colours", title: "Colours", Body: Colours, localized: false },
-	{ id: "layout", title: "Layout", Body: Layout, localized: false },
-	{ id: "typography", title: "Typography", Body: Typography, localized: true },
-	{ id: "icons", title: "Icon", Body: Icons, localized: false },
-	{ id: "buttons", title: "Button", Body: Buttons, localized: true },
-	{ id: "cards", title: "Card", Body: Cards, localized: true },
-	{ id: "dialogs", title: "Dialog", Body: Dialogs, localized: true },
-	{ id: "site-header", title: "Site header", Body: SiteHeaderSection, localized: true },
-	{ id: "banner", title: "Banner", Body: Banners, localized: true },
-	{ id: "sidebar", title: "Sidebar boxes", Body: SidebarBoxes, localized: true },
-	{ id: "articles", title: "ArticleCard", Body: Articles, localized: true },
-	{ id: "steps", title: "Steps", Body: StepsSection, localized: true },
-	{ id: "departments", title: "DepartmentCard", Body: Departments, localized: true },
-	{ id: "faq", title: "FaqGroup", Body: Faq, localized: true },
-];
+const groups = [
+	{
+		title: "Foundations",
+		sections: [
+			{ title: "Colours", Body: ColoursSection, localized: false },
+			{ title: "Typography", Body: TypographySection, localized: true },
+			{ title: "Layout", Body: LayoutSection, localized: false },
+			{ title: "Icons", components: ["Icon"], Body: IconsSection, localized: false },
+		],
+	},
+	{
+		title: "Components",
+		sections: [
+			{ title: "Article card", components: ["ArticleCard"], Body: ArticleCardSection, localized: true },
+			{ title: "Banner", components: ["Banner"], Body: BannerSection, localized: true },
+			{ title: "Button", components: ["Button"], Body: ButtonSection, localized: true },
+			{ title: "Card", components: ["Card"], Body: CardSection, localized: true },
+			{ title: "Department card", components: ["DepartmentCard"], Body: DepartmentCardSection, localized: true },
+			{ title: "Dialog", components: ["Dialog"], Body: DialogSection, localized: true },
+			{ title: "FAQ group", components: ["FaqGroup"], Body: FaqGroupSection, localized: true },
+			{ title: "Language banner", components: ["LanguageBanner"], Body: LanguageBannerSection, localized: false },
+			{
+				title: "Sidebar boxes",
+				components: ["ShortcutsBox", "NewsletterBox", "WeeklyBagBox"],
+				Body: SidebarBoxesSection,
+				localized: true,
+			},
+			{
+				title: "Site header",
+				components: ["SiteHeader", "LanguageLink", "ThemeSelect", "ThemeScript"],
+				Body: SiteHeaderSection,
+				localized: true,
+			},
+			{ title: "Steps", components: ["Steps"], Body: StepsSection, localized: true },
+		],
+	},
+].map((group) => ({
+	...group,
+	// Anchor from the title: "Article card" → "article-card".
+	sections: group.sections.map((section) => ({ ...section, id: section.title.toLowerCase().replaceAll(" ", "-") })),
+}));
 ---
 
 <Base
@@ -85,12 +113,17 @@ const sections = [
 					Components and sample content: <strong lang={locale}>{localeNames[locale]}</strong>
 				</p>
 
-				<nav class="cluster group" aria-label="Styleguide sections">
+				<nav class="stack toc" aria-label="Styleguide sections">
 					{
-						sections.map(({ id, title }) => (
-							<Button href={`#${id}`} variant="secondary" size="sm">
-								{title}
-							</Button>
+						groups.map((group) => (
+							<div class="cluster group">
+								<span class="text-small text-muted">{group.title}</span>
+								{group.sections.map(({ id, title }) => (
+									<Button href={`#${id}`} variant="secondary" size="sm">
+										{title}
+									</Button>
+								))}
+							</div>
 						))
 					}
 				</nav>
@@ -98,11 +131,13 @@ const sections = [
 		</Card>
 
 		{
-			sections.map(({ id, title, Body, localized }) => (
-				<Section id={id} title={title} lang={localized ? locale : undefined}>
-					<Body locale={locale} />
-				</Section>
-			))
+			groups.flatMap((group) =>
+				group.sections.map(({ id, title, components, Body, localized }) => (
+					<Section id={id} title={title} components={components} lang={localized ? locale : undefined}>
+						<Body locale={locale} />
+					</Section>
+				)),
+			)
 		}
 	</div>
 </Base>
@@ -124,6 +159,10 @@ const sections = [
 
 	.heading {
 		--stack-gap: 0.25rem;
+	}
+
+	.toc {
+		--stack-gap: 0.5rem;
 	}
 
 	.group {

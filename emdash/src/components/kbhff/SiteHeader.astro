@@ -16,7 +16,7 @@
  */
 import LiveSearch from "emdash/ui/search";
 import { getMessages, type Locale } from "../../i18n";
-import { localeHomeHref, otherLocale } from "../../utils/locale-links";
+import { homePath, type LanguageLinkTarget } from "../../i18n/routes";
 import Button from "./Button.astro";
 import Icon from "./Icon.astro";
 import LanguageLink from "./LanguageLink.astro";
@@ -33,25 +33,20 @@ interface Props {
 	siteLogo: { url?: string; alt?: string } | null;
 	links: MenuLink[];
 	locale: Locale;
-	/**
-	 * Where the language link points. Pages set this: content pages pass the
-	 * translated page, the styleguide passes its `?lang=` variant. Defaults to
-	 * the other language's home page.
-	 */
-	languageLink?: { locale: Locale; href: string };
+	/** Where the language link points; set by the page through Base. */
+	languageLink: LanguageLinkTarget;
 }
 
-const { siteTitle, siteLogo, links, locale } = Astro.props;
+const { siteTitle, siteLogo, links, locale, languageLink } = Astro.props;
 const t = getMessages(locale);
-const languageLink = Astro.props.languageLink ?? {
-	locale: otherLocale(locale),
-	href: localeHomeHref(otherLocale(locale)),
-};
+// Menu URLs may or may not end in "/" ("/en/" vs "/en"); compare without it.
+const withoutTrailingSlash = (path: string) => (path.length > 1 ? path.replace(/\/$/, "") : path);
+const currentPath = withoutTrailingSlash(Astro.url.pathname);
 ---
 
 <header class="site-header" data-site-header>
 	<div class="bar">
-		<a class="brand" href="/">
+		<a class="brand" href={homePath(locale)}>
 			{siteLogo?.url ? <img src={siteLogo.url} alt={siteLogo.alt || siteTitle} /> : siteTitle}
 		</a>
 
@@ -72,7 +67,7 @@ const languageLink = Astro.props.languageLink ?? {
 									href={link.url}
 									target={link.target || undefined}
 									rel={link.target === "_blank" ? "noopener noreferrer" : undefined}
-									aria-current={link.url === Astro.url.pathname ? "page" : undefined}
+									aria-current={withoutTrailingSlash(link.url) === currentPath ? "page" : undefined}
 								>
 									{link.label}
 								</a>
@@ -81,7 +76,7 @@ const languageLink = Astro.props.languageLink ?? {
 					}
 				</ul>
 			</nav>
-			<LiveSearch placeholder={t.common.search} collections={["posts", "pages"]} />
+			<LiveSearch placeholder={t.common.search} collections={["posts", "pages"]} locale={locale} />
 			<ThemeSelect locale={locale} />
 		</div>
 

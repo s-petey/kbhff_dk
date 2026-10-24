@@ -11,6 +11,31 @@ const en = {
 		menu: "Menu",
 		mainNavigation: "Main navigation",
 	},
+	news: {
+		title: "News",
+		latest: "Latest news",
+		empty: "No news yet.",
+		emptyFiltered: "No news here yet.",
+		filters: "Filter news",
+		categories: "Categories",
+		tags: "Tags",
+		allNews: "All news",
+		pagination: "Pages",
+		firstPage: "First page",
+		nextPage: "Next page",
+	},
+	notFound: {
+		title: "Page not found",
+		body: "We could not find the page you were looking for.",
+		home: "Go to the home page",
+	},
+	languageBanner: {
+		/** Shown in this language to visitors whose browser prefers it. */
+		message: "This page is also available in English.",
+		action: "View in English",
+		dismiss: "Close",
+		region: "Language suggestion",
+	},
 	shortcuts: {
 		title: "Shortcuts",
 		takeShift: "Take a shift",

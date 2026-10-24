@@ -1,0 +1,79 @@
+---
+/** News item at `/nyheder/{slug}` and `/en/news/{slug}`. Data from loadNewsItem.ts. */
+import type { ContentEntry, SeoMeta } from "emdash";
+import { Image, PortableText, WidgetArea } from "emdash/ui";
+import type { Post } from "../../emdash-env";
+import { formatDate, type Locale } from "../i18n";
+import { newsListPath, type LanguageLinkTarget } from "../i18n/routes";
+import type { Alternate } from "../i18n/translations";
+import Base from "../layouts/Base.astro";
+
+interface Props {
+	post: ContentEntry<Post>;
+	locale: Locale;
+	seo: SeoMeta;
+	alternates: Alternate[];
+	languageLink: LanguageLinkTarget;
+}
+
+const { post, locale, seo, alternates, languageLink } = Astro.props;
+// Taxonomy terms are already hydrated onto the entry by getEmDashEntry.
+const tags = post.data.terms?.tag ?? [];
+const categories = post.data.terms?.category ?? [];
+---
+
+<Base
+	title={seo.title}
+	pageTitle={seo.ogTitle}
+	description={seo.description}
+	canonical={seo.canonical}
+	image={seo.ogImage}
+	robots={seo.robots}
+	alternates={alternates}
+	locale={locale}
+	languageLink={languageLink}
+>
+	<article>
+		{
+			post.data.featured_image && (
+				<div {...post.edit.featured_image}>
+					<Image image={post.data.featured_image} />
+				</div>
+			)
+		}
+
+		<h1 {...post.edit.title}>{post.data.title}</h1>
+
+		{
+			post.data.publishedAt && (
+				<time datetime={post.data.publishedAt.toISOString()}>{formatDate(locale, post.data.publishedAt)}</time>
+			)
+		}
+
+		{
+			categories.length > 0 && (
+				<div class="cluster">
+					{categories.map((category) => (
+						<a href={newsListPath(locale, { category: category.slug })}>{category.label}</a>
+					))}
+				</div>
+			)
+		}
+
+		<PortableText value={post.data.content} />
+
+		{
+			tags.length > 0 && (
+				<div class="cluster">
+					{tags.map((tag) => (
+						<a href={newsListPath(locale, { tag: tag.slug })}>{tag.label}</a>
+					))}
+				</div>
+			)
+		}
+	</article>
+
+	<aside>
+		<WidgetArea name="sidebar" />
+	</aside>
+</Base>

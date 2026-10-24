@@ -1,0 +1,9 @@
+---
+import { loadNewsItem } from "../../../views/loadNewsItem";
+import NewsArticleView from "../../../views/NewsArticleView.astro";
+
+const data = await loadNewsItem(Astro);
+if (!data) return Astro.rewrite("/404");
+---
+
+<NewsArticleView {...data} />

@@ -2,20 +2,21 @@
 	"$schema": "https://emdashcms.com/seed.schema.json",
 	"version": "1",
 	"meta": {
-		"name": "Starter",
-		"description": "A minimal EmDash starter with posts and pages",
-		"author": "EmDash"
+		"name": "KBHFF starter",
+		"description": "Posts and pages in Danish (default) with linked English translations",
+		"author": "KBHFF"
 	},
+	"defaultLocale": "da",
 	"settings": {
-		"title": "My Site",
-		"tagline": "Built with EmDash"
+		"title": "KBHFF",
+		"tagline": "Københavns Fødevarefællesskab"
 	},
 	"collections": [
 		{
 			"slug": "posts",
 			"label": "Posts",
 			"labelSingular": "Post",
-			"urlPattern": "/posts/{slug}",
+			"urlPattern": "/nyheder/{slug}",
 			"supports": ["drafts", "revisions", "preview", "scheduling", "search", "seo"],
 			"fields": [
 				{
@@ -68,60 +69,92 @@
 	],
 	"taxonomies": [
 		{
+			"id": "tax:category:da",
+			"name": "category",
+			"label": "Kategorier",
+			"labelSingular": "Kategori",
+			"hierarchical": true,
+			"collections": ["posts"],
+			"locale": "da",
+			"terms": [
+				{ "id": "term:category:generelt:da", "slug": "generelt", "label": "Generelt", "locale": "da" },
+				{ "id": "term:category:opdateringer:da", "slug": "opdateringer", "label": "Opdateringer", "locale": "da" }
+			]
+		},
+		{
+			"id": "tax:category:en",
 			"name": "category",
 			"label": "Categories",
 			"labelSingular": "Category",
-			"hierarchical": true,
-			"collections": ["posts"],
+			"locale": "en",
+			"translationOf": "tax:category:da",
 			"terms": [
 				{
+					"id": "term:category:general:en",
 					"slug": "general",
-					"label": "General"
+					"label": "General",
+					"locale": "en",
+					"translationOf": "term:category:generelt:da"
 				},
 				{
+					"id": "term:category:updates:en",
 					"slug": "updates",
-					"label": "Updates"
+					"label": "Updates",
+					"locale": "en",
+					"translationOf": "term:category:opdateringer:da"
 				}
 			]
 		},
 		{
+			"id": "tax:tag:da",
 			"name": "tag",
 			"label": "Tags",
 			"labelSingular": "Tag",
 			"hierarchical": false,
 			"collections": ["posts"],
+			"locale": "da",
+			"terms": [{ "id": "term:tag:eksempel:da", "slug": "eksempel", "label": "Eksempel", "locale": "da" }]
+		},
+		{
+			"id": "tax:tag:en",
+			"name": "tag",
+			"label": "Tags",
+			"labelSingular": "Tag",
+			"locale": "en",
+			"translationOf": "tax:tag:da",
 			"terms": [
 				{
-					"slug": "starter",
-					"label": "Starter"
-				},
-				{
+					"id": "term:tag:example:en",
 					"slug": "example",
-					"label": "Example"
+					"label": "Example",
+					"locale": "en",
+					"translationOf": "term:tag:eksempel:da"
 				}
 			]
 		}
 	],
 	"menus": [
 		{
+			"id": "menu:primary:da",
 			"name": "primary",
-			"label": "Primary Navigation",
+			"label": "Hovedmenu",
+			"locale": "da",
 			"items": [
-				{
-					"type": "custom",
-					"label": "Home",
-					"url": "/"
-				},
-				{
-					"type": "custom",
-					"label": "Posts",
-					"url": "/posts"
-				},
-				{
-					"type": "custom",
-					"label": "About",
-					"url": "/about"
-				}
+				{ "type": "custom", "label": "Forside", "url": "/" },
+				{ "type": "custom", "label": "Nyheder", "url": "/nyheder" },
+				{ "type": "custom", "label": "Om KBHFF", "url": "/om" }
+			]
+		},
+		{
+			"id": "menu:primary:en",
+			"name": "primary",
+			"label": "Main navigation",
+			"locale": "en",
+			"translationOf": "menu:primary:da",
+			"items": [
+				{ "type": "custom", "label": "Home", "url": "/en/" },
+				{ "type": "custom", "label": "News", "url": "/en/news" },
+				{ "type": "custom", "label": "About KBHFF", "url": "/en/about" }
 			]
 		}
 	],
@@ -138,11 +171,6 @@
 				},
 				{
 					"type": "component",
-					"componentId": "core:categories",
-					"title": "Categories"
-				},
-				{
-					"type": "component",
 					"componentId": "core:recent-posts",
 					"title": "Recent Posts",
 					"props": {
@@ -155,23 +183,95 @@
 	"content": {
 		"pages": [
 			{
-				"id": "about",
-				"slug": "about",
+				"id": "om",
+				"slug": "om",
 				"status": "published",
+				"locale": "da",
 				"data": {
-					"title": "About",
+					"title": "Om KBHFF",
 					"content": [
 						{
 							"_type": "block",
 							"style": "normal",
+							"_key": "k0",
 							"children": [
 								{
 									"_type": "span",
-									"text": "This is the about page. Edit it in the admin panel or replace this template with your own design.",
-									"_key": "k1"
+									"_key": "k1",
+									"text": "Eksempelside. Rediger den i administrationen. Den engelske oversættelse er koblet til denne side."
 								}
-							],
-							"_key": "k0"
+							]
+						}
+					]
+				}
+			},
+			{
+				"id": "about",
+				"slug": "about",
+				"status": "published",
+				"locale": "en",
+				"translationOf": "om",
+				"data": {
+					"title": "About KBHFF",
+					"content": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"_key": "k0",
+							"children": [
+								{
+									"_type": "span",
+									"_key": "k1",
+									"text": "Example page. Edit it in the admin. It is linked as the English translation of the Danish page."
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"id": "nyheder",
+				"slug": "nyheder",
+				"status": "published",
+				"locale": "da",
+				"data": {
+					"title": "Nyheder",
+					"content": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"_key": "k0",
+							"children": [
+								{
+									"_type": "span",
+									"_key": "k1",
+									"text": "Titel og intro til nyhedslisten på /nyheder. Rediger dem i administrationen."
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"id": "news",
+				"slug": "news",
+				"status": "published",
+				"locale": "en",
+				"translationOf": "nyheder",
+				"data": {
+					"title": "News",
+					"content": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"_key": "k0",
+							"children": [
+								{
+									"_type": "span",
+									"_key": "k1",
+									"text": "Title and intro for the news list at /en/news. Edit them in the admin."
+								}
+							]
 						}
 					]
 				}
@@ -179,54 +279,60 @@
 		],
 		"posts": [
 			{
-				"id": "post-1",
-				"slug": "welcome",
+				"id": "velkommen",
+				"slug": "velkommen",
 				"status": "published",
+				"locale": "da",
 				"data": {
-					"title": "Welcome",
-					"excerpt": "Your first post. Replace this with your own content.",
+					"title": "Velkommen",
+					"excerpt": "Eksempelnyhed. Erstat den med rigtigt indhold.",
 					"content": [
 						{
 							"_type": "block",
 							"style": "normal",
+							"_key": "k0",
 							"children": [
 								{
 									"_type": "span",
-									"text": "This is a starter post. The templates in this project show the basic patterns for querying and rendering EmDash content. Replace them with your own design.",
-									"_key": "k1"
+									"_key": "k1",
+									"text": "Eksempelnyhed på dansk. Den engelske oversættelse har sin egen slug, men er koblet til denne."
 								}
-							],
-							"_key": "k0"
-						},
-						{
-							"_type": "block",
-							"style": "h2",
-							"children": [
-								{
-									"_type": "span",
-									"text": "What to do next",
-									"_key": "k3"
-								}
-							],
-							"_key": "k2"
-						},
+							]
+						}
+					]
+				},
+				"taxonomies": {
+					"category": ["generelt"],
+					"tag": ["eksempel"]
+				}
+			},
+			{
+				"id": "welcome",
+				"slug": "welcome",
+				"status": "published",
+				"locale": "en",
+				"translationOf": "velkommen",
+				"data": {
+					"title": "Welcome",
+					"excerpt": "Example news item. Replace it with real content.",
+					"content": [
 						{
 							"_type": "block",
 							"style": "normal",
+							"_key": "k0",
 							"children": [
 								{
 									"_type": "span",
-									"text": "Open the admin panel to add content, or edit the Astro pages in src/pages to change how content is displayed.",
-									"_key": "k5"
+									"_key": "k1",
+									"text": "Example news item in English. It has its own slug but is linked to the Danish version."
 								}
-							],
-							"_key": "k4"
+							]
 						}
 					]
 				},
 				"taxonomies": {
 					"category": ["general"],
-					"tag": ["starter", "example"]
+					"tag": ["example"]
 				}
 			}
 		]

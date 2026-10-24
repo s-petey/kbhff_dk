@@ -1,0 +1,39 @@
+---
+/**
+ * CMS pages in both languages, following EmDash's i18n guide: one catch-all
+ * route, the locale from the URL (Astro i18n) and
+ * `getEmDashEntry("pages", slug, { locale })`. Links to pages are
+ * `/${entry.id}` (EmDash includes the locale prefix in `entry.id`).
+ *
+ * Code routes (home, news, styleguide) have their own files and take
+ * precedence. See src/i18n/routes.ts.
+ */
+import { decodeSlug, getEmDashEntry, getSeoMeta, getSiteSettings } from "emdash";
+import { defaultLocale, resolveLocale } from "../i18n";
+import { homePath } from "../i18n/routes";
+import { entryLanguageLink } from "../i18n/translations";
+import { resolveStarterSiteIdentity } from "../utils/site-identity";
+import PageView from "../views/PageView.astro";
+
+const locale = resolveLocale(Astro.currentLocale);
+// "/en/about" arrives as "en/about"; the entry's slug is "about".
+const path = decodeSlug(Astro.params.slug);
+const slug = locale === defaultLocale ? path : path?.replace(`${locale}/`, "");
+if (!slug || slug.includes("/")) return Astro.rewrite("/404");
+
+const { entry: page, cacheHint } = await getEmDashEntry("pages", slug, { locale });
+if (!page) return Astro.rewrite("/404");
+if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+
+const settings = await getSiteSettings();
+const { siteTitle } = resolveStarterSiteIdentity(settings);
+// Same origin order as EmDashHead: the admin Site URL, then the request.
+const siteUrl = settings.url || Astro.url.origin;
+---
+
+<PageView
+	page={page}
+	locale={locale}
+	seo={getSeoMeta(page, { siteTitle, siteUrl, path: Astro.url.pathname.replace(/\/$/, "") })}
+	languageLink={await entryLanguageLink("pages", page.data.id, locale, homePath)}
+/>
