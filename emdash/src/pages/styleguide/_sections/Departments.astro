@@ -1,0 +1,65 @@
+---
+import DepartmentCard from "../../../components/kbhff/DepartmentCard.astro";
+import type { Locale } from "../../../i18n";
+
+interface Props {
+	locale: Locale;
+}
+
+const { locale } = Astro.props;
+const text = {
+	en: {
+		north: "Example North",
+		south: "Example South",
+		west: "Example West",
+		streets: ["Example Street 1", "Sample Road 12", "Test Avenue 3"],
+		cities: ["Copenhagen N", "Copenhagen S", "Vanløse"],
+		hours: "Wednesday 16:00–18:00",
+		membersOnlyNote: "Only for members of the example housing cooperative.",
+		closedNote: "This department is closed until further notice.",
+	},
+	da: {
+		north: "Eksempel Nord",
+		south: "Eksempel Syd",
+		west: "Eksempel Vest",
+		streets: ["Eksempelvej 1", "Prøvegade 12", "Testallé 3"],
+		cities: ["København N", "København S", "Vanløse"],
+		hours: "Onsdag 16.00–18.00",
+		membersOnlyNote: "Kun for andelshavere i eksempelforeningen.",
+		closedNote: "Afdelingen holder lukket indtil videre.",
+	},
+}[locale];
+---
+
+<div class="auto-grid">
+	<DepartmentCard
+		name={text.north}
+		href="#departments"
+		address={text.streets[0]}
+		postal="2200"
+		city={text.cities[0]}
+		email="north@example.org"
+		openingHours={text.hours}
+		locale={locale}
+	/>
+	<DepartmentCard
+		name={text.south}
+		href="#departments"
+		address={text.streets[1]}
+		postal="2300"
+		city={text.cities[1]}
+		status="members-only"
+		statusNote={text.membersOnlyNote}
+		locale={locale}
+	/>
+	<DepartmentCard
+		name={text.west}
+		href="#departments"
+		address={text.streets[2]}
+		postal="2720"
+		city={text.cities[2]}
+		status="closed"
+		statusNote={text.closedNote}
+		locale={locale}
+	/>
+</div>

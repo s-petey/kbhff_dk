@@ -1,9 +1,11 @@
 ---
 import "../styles/theme.css";
+import "../styles/layout.css";
 import { getMenuWithCacheHint, getSiteSettingsWithCacheHint } from "emdash";
 import { EmDashHead, EmDashBodyStart, EmDashBodyEnd } from "emdash/ui";
 import { createPublicPageContext } from "emdash/page";
 import LiveSearch from "emdash/ui/search";
+import { getMessages, resolveLocale, type Locale } from "../i18n";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
 
 interface Props {
@@ -14,10 +16,20 @@ interface Props {
 	canonical?: string | null;
 	/** Pass content reference for plugin page contributions on content pages */
 	content?: { collection: string; id: string; slug?: string | null };
+	/** Interface language; defaults to the request locale, then the site default. */
+	locale?: Locale;
 }
 
-const { title, pageTitle, description, image, canonical, content } =
-	Astro.props;
+const {
+	title,
+	pageTitle,
+	description,
+	image,
+	canonical,
+	content,
+	locale = resolveLocale(Astro.currentLocale),
+} = Astro.props;
+const t = getMessages(locale);
 const [settingsResult, menuResult] = await Promise.all([
 	getSiteSettingsWithCacheHint(),
 	getMenuWithCacheHint("primary"),
@@ -53,7 +65,7 @@ const pageCtx = createPublicPageContext({
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={locale}>
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -63,7 +75,7 @@ const pageCtx = createPublicPageContext({
 	<body>
 		<EmDashBodyStart page={pageCtx} />
 
-		<header>
+		<header class="site-header">
 			<nav>
 				<a href="/">
 					{
@@ -89,7 +101,7 @@ const pageCtx = createPublicPageContext({
 						</a>
 					))
 				}
-				<LiveSearch placeholder="Search..." collections={["posts", "pages"]} />
+				<LiveSearch placeholder={t.common.search} collections={["posts", "pages"]} />
 			</nav>
 		</header>
 

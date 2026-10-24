@@ -1,0 +1,37 @@
+---
+import FaqGroup from "../../../components/kbhff/FaqGroup.astro";
+import type { Locale } from "../../../i18n";
+
+interface Props {
+	locale: Locale;
+}
+
+const { locale } = Astro.props;
+const text = {
+	en: {
+		title: "Membership",
+		withAnswer: "Example: how do I become a member?",
+		answer: "A short answer shown inline when the question is opened.",
+		linkOnly: "Example: a question that only links to its own page",
+		empty: "Empty category",
+	},
+	da: {
+		title: "Medlemskab",
+		withAnswer: "Eksempel: hvordan bliver jeg medlem?",
+		answer: "Et kort svar vises direkte, når spørgsmålet åbnes.",
+		linkOnly: "Eksempel: et spørgsmål der kun linker til sin egen side",
+		empty: "Tom kategori",
+	},
+}[locale];
+---
+
+<FaqGroup
+	title={text.title}
+	questions={[
+		{ question: text.withAnswer, answer: text.answer, href: "#faq" },
+		{ question: text.linkOnly, href: "#faq" },
+	]}
+	locale={locale}
+/>
+
+<FaqGroup title={text.empty} questions={[]} locale={locale} />

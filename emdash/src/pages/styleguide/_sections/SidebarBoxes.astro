@@ -1,0 +1,39 @@
+---
+import NewsletterBox from "../../../components/kbhff/NewsletterBox.astro";
+import ShortcutsBox from "../../../components/kbhff/ShortcutsBox.astro";
+import WeeklyBagBox from "../../../components/kbhff/WeeklyBagBox.astro";
+import type { Locale } from "../../../i18n";
+
+interface Props {
+	locale: Locale;
+}
+
+const { locale } = Astro.props;
+const bag = {
+	en: { vegetables: "Vegetables", fruit: "Fruit", items: ["Example: carrots", "Example: Brussels sprouts", "Example: potatoes", "Example: apples"] },
+	da: { vegetables: "Grøntsager", fruit: "Frugt", items: ["Eksempel: gulerødder", "Eksempel: rosenkål", "Eksempel: kartofler", "Eksempel: æbler"] },
+}[locale];
+---
+
+<p class="lead">ShortcutsBox for guests and members, NewsletterBox, and WeeklyBagBox with and without a bag.</p>
+
+<div class="auto-grid">
+	<ShortcutsBox locale={locale} />
+	<ShortcutsBox audience="member" locale={locale} />
+	<NewsletterBox locale={locale} />
+
+	<WeeklyBagBox week={44} year={2026} pickupDate={new Date("2026-10-28T15:00:00Z")} href="/ugens-pose" locale={locale}>
+		<h4>{bag.vegetables}</h4>
+		<ul>
+			<li>{bag.items[0]}</li>
+			<li>{bag.items[1]}</li>
+			<li>{bag.items[2]}</li>
+		</ul>
+		<h4>{bag.fruit}</h4>
+		<ul>
+			<li>{bag.items[3]}</li>
+		</ul>
+	</WeeklyBagBox>
+
+	<WeeklyBagBox href="/ugens-pose" locale={locale} />
+</div>

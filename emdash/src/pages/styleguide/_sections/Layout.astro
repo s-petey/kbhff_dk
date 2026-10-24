@@ -1,0 +1,103 @@
+<p class="lead">
+	Grid for two-dimensional layouts and vertical stacks; flex for one-dimensional rows that wrap. Spacing between
+	siblings comes from <code>gap</code>. Primitives live in <code>src/styles/layout.css</code> with zero specificity, so
+	component styles always win.
+</p>
+
+<div class="table-scroll">
+	<table>
+		<thead>
+			<tr>
+				<th scope="col">Class</th>
+				<th scope="col">Uses</th>
+				<th scope="col">For</th>
+				<th scope="col">Custom properties</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td><code>.stack</code></td>
+				<td>Grid</td>
+				<td>Vertical stack with even gap</td>
+				<td><code>--stack-gap</code></td>
+			</tr>
+			<tr>
+				<td><code>.cluster</code></td>
+				<td>Flex</td>
+				<td>Wrapping row of content-sized items</td>
+				<td><code>--cluster-gap</code></td>
+			</tr>
+			<tr>
+				<td><code>.auto-grid</code></td>
+				<td>Grid</td>
+				<td>Responsive columns of cards</td>
+				<td><code>--auto-grid-min</code>, <code>--auto-grid-gap</code></td>
+			</tr>
+			<tr>
+				<td><code>.with-sidebar</code></td>
+				<td>Grid</td>
+				<td>Content + sidebar, stacks below 60rem</td>
+				<td><code>--sidebar-width</code>, <code>--sidebar-gap</code></td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+
+<div class="with-sidebar demo">
+	<div class="stack">
+		<div class="block">.with-sidebar → main</div>
+		<div class="auto-grid" style="--auto-grid-min: 8rem">
+			<div class="block">.auto-grid</div>
+			<div class="block">.auto-grid</div>
+			<div class="block">.auto-grid</div>
+		</div>
+	</div>
+	<div class="stack" style="--stack-gap: 0.5rem">
+		<div class="block">.with-sidebar → aside</div>
+		<div class="cluster" style="--cluster-gap: 0.4rem">
+			<span class="block small">.cluster</span>
+			<span class="block small">item</span>
+			<span class="block small">item</span>
+		</div>
+	</div>
+</div>
+
+<style>
+	.table-scroll {
+		overflow-x: auto;
+	}
+
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: 0.9rem;
+	}
+
+	th,
+	td {
+		padding: 0.5rem 0.75rem;
+		border-block-end: 1px solid var(--color-border);
+		text-align: start;
+		vertical-align: top;
+	}
+
+	th {
+		color: var(--color-text-muted);
+		font-weight: 650;
+	}
+
+	.block {
+		display: block;
+		padding: 0.75rem;
+		border: 1px dashed var(--color-brand);
+		border-radius: var(--radius-sm);
+		color: var(--color-brand);
+		background: var(--color-brand-soft);
+		font-family: ui-monospace, monospace;
+		font-size: 0.8rem;
+	}
+
+	.block.small {
+		padding: 0.25rem 0.5rem;
+	}
+</style>

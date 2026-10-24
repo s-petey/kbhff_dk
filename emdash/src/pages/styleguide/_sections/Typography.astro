@@ -1,0 +1,44 @@
+---
+import type { Locale } from "../../../i18n";
+
+interface Props {
+	locale: Locale;
+}
+
+const { locale } = Astro.props;
+const text = {
+	en: {
+		h1: "Food for the people, by the people",
+		h2: "Heading level 2",
+		h3: "Heading level 3",
+		lead: "A lead paragraph introduces a page or section.",
+		body: "Body text. The Copenhagen Food Cooperative is owned by its members.",
+		link: "A link",
+		small: "Small, muted text for metadata and hints.",
+	},
+	da: {
+		h1: "Mad til folket, af folket",
+		h2: "Overskrift niveau 2",
+		h3: "Overskrift niveau 3",
+		lead: "Et indledende afsnit introducerer en side eller sektion.",
+		body: "Brødtekst. Københavns Fødevarefællesskab er ejet af sine medlemmer.",
+		link: "Et link",
+		small: "Lille, dæmpet tekst til metadata og hjælpetekster.",
+	},
+}[locale];
+---
+
+<p class="lead">
+	System font stack for now; the legacy <code>voresfont</code> is a backlog item. Heading defaults, <code>.lead</code>,
+	<code>.eyebrow</code>, <code>.text-muted</code> and <code>.text-small</code> come from <code>theme.css</code>.
+</p>
+
+<div class="stack" style="--stack-gap: 0.75rem">
+	<p class="eyebrow">Eyebrow</p>
+	<h1>{text.h1}</h1>
+	<h2>{text.h2}</h2>
+	<h3>{text.h3}</h3>
+	<p class="lead">{text.lead}</p>
+	<p>{text.body} <a href="#typography">{text.link}</a>.</p>
+	<p class="text-small text-muted">{text.small}</p>
+</div>

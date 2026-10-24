@@ -1,0 +1,166 @@
+---
+import { getMessages, resolveLocale, type Locale } from "../../i18n";
+import Icon from "./Icon.astro";
+
+export type DepartmentStatus = "open" | "members-only" | "closed";
+
+interface Props {
+	name: string;
+	href: string;
+	address: string;
+	postal: string;
+	city: string;
+	email?: string;
+	/** Free text from the department record; line breaks are kept. */
+	openingHours?: string;
+	status?: DepartmentStatus;
+	/** Short note shown with the status, e.g. a closure notice. */
+	statusNote?: string;
+	locale?: Locale;
+}
+
+const {
+	name,
+	href,
+	address,
+	postal,
+	city,
+	email,
+	openingHours,
+	status = "open",
+	statusNote,
+	locale = resolveLocale(Astro.currentLocale),
+} = Astro.props;
+const t = getMessages(locale).department;
+
+const statusLabels: Record<DepartmentStatus, string> = {
+	open: t.status.open,
+	"members-only": t.status.membersOnly,
+	closed: t.status.closed,
+};
+---
+
+<article class:list={["department", status]} itemscope itemtype="https://schema.org/LocalBusiness">
+	<header>
+		<h3 itemprop="name"><a href={href}>{name}</a></h3>
+		<span class="status">{statusLabels[status]}</span>
+	</header>
+	{statusNote && <p class="note">{statusNote}</p>}
+	<ul>
+		<li itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">
+			<Icon name="pin" size={18} label={t.address} />
+			<span>
+				<span itemprop="streetAddress">{address}</span>,
+				<span itemprop="postalCode">{postal}</span>
+				<span itemprop="addressLocality">{city}</span>
+			</span>
+		</li>
+		{
+			openingHours && (
+				<li>
+					<Icon name="clock" size={18} label={t.openingHours} />
+					<span class="hours">{openingHours}</span>
+				</li>
+			)
+		}
+		{
+			email && (
+				<li>
+					<Icon name="mail" size={18} label={t.email} />
+					<a href={`mailto:${email}`} itemprop="email">
+						{email}
+					</a>
+				</li>
+			)
+		}
+	</ul>
+</article>
+
+<style>
+	.department {
+		display: grid;
+		gap: 0.75rem;
+		height: 100%;
+		padding: 1.25rem;
+		background: var(--color-surface);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-lg);
+		box-shadow: var(--shadow-sm);
+	}
+
+	header {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+	}
+
+	h3 {
+		margin: 0;
+		font-size: 1.15rem;
+	}
+
+	h3 a {
+		color: var(--color-text);
+		text-decoration: none;
+	}
+
+	h3 a:hover {
+		color: var(--color-brand);
+	}
+
+	.status {
+		padding: 0.15rem 0.6rem;
+		border-radius: 999px;
+		color: var(--color-brand);
+		background: var(--color-brand-soft);
+		font-size: 0.78rem;
+		font-weight: 650;
+	}
+
+	.members-only .status {
+		color: var(--color-text);
+		background: var(--color-canvas);
+		border: 1px solid var(--color-border);
+	}
+
+	.closed .status {
+		color: var(--color-danger);
+		background: var(--color-danger-soft);
+	}
+
+	.note {
+		margin: 0;
+		color: var(--color-text-muted);
+		font-size: 0.9rem;
+	}
+
+	ul {
+		display: grid;
+		gap: 0.5rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		font-size: 0.92rem;
+	}
+
+	li {
+		display: flex;
+		gap: 0.55rem;
+		align-items: flex-start;
+	}
+
+	li :global(svg) {
+		margin-top: 0.15rem;
+		color: var(--color-text-muted);
+	}
+
+	.hours {
+		white-space: pre-line;
+	}
+
+	li a {
+		overflow-wrap: anywhere;
+	}
+</style>

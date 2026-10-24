@@ -1,0 +1,45 @@
+---
+import Card from "../../../components/kbhff/Card.astro";
+import type { Locale } from "../../../i18n";
+
+interface Props {
+	locale: Locale;
+}
+
+const { locale } = Astro.props;
+const text = {
+	en: {
+		default: ["Default", "Standard surface for boxes and lists."],
+		brand: ["Brand", "Highlighted box, e.g. shortcuts."],
+		warning: ["Warning", "Example: pickup moves to Thursday this week."],
+		danger: ["Danger", "Example: this department is closed."],
+	},
+	da: {
+		default: ["Standard", "Standardflade til bokse og lister."],
+		brand: ["Brand", "Fremhævet boks, fx genveje."],
+		warning: ["Advarsel", "Eksempel: afhentning flytter til torsdag i denne uge."],
+		danger: ["Fare", "Eksempel: afdelingen er lukket."],
+	},
+}[locale];
+---
+
+<p class="lead">Tones: <code>default</code>, <code>brand</code>, <code>warning</code>, <code>danger</code>.</p>
+
+<div class="auto-grid">
+	<Card>
+		<h3>{text.default[0]}</h3>
+		<p>{text.default[1]}</p>
+	</Card>
+	<Card tone="brand">
+		<h3>{text.brand[0]}</h3>
+		<p>{text.brand[1]}</p>
+	</Card>
+	<Card tone="warning">
+		<h3>{text.warning[0]}</h3>
+		<p>{text.warning[1]}</p>
+	</Card>
+	<Card tone="danger">
+		<h3>{text.danger[0]}</h3>
+		<p>{text.danger[1]}</p>
+	</Card>
+</div>

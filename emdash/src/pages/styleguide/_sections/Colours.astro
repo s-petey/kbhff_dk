@@ -1,0 +1,115 @@
+---
+const greenScale = [
+	["50", "#f3faef"],
+	["100", "#e4f4dc"],
+	["200", "#c9e8ba"],
+	["300", "#9ed685"],
+	["400", "#73c74d"],
+	["500", "#51a928"],
+	["600", "#3e8e17"],
+	["700", "#357914"],
+	["800", "#2a5f10"],
+	["900", "#1e3e0f"],
+	["950", "#12240a"],
+] as const;
+
+// [token, use, light value, dark value] — mirrors src/styles/theme.css.
+const semanticTokens = [
+	["--color-text", "Body text", "#1d1f1c", "#e7eae4"],
+	["--color-text-muted", "Secondary text", "#5c625a", "#a3aa9f"],
+	["--color-canvas", "Page background", "#f7f8f5", "#141613"],
+	["--color-surface", "Cards", "#ffffff", "#1c1f1b"],
+	["--color-border", "Borders", "#d5dbd1", "#343a31"],
+	["--color-surface-inverse", "Dark band, e.g. footer", "#262925", "#0d0f0c"],
+	["--color-text-inverse", "Text on the inverse surface", "#e9ece6", "#e7eae4"],
+	["--color-brand", "Links, buttons", "green-700", "green-300"],
+	["--color-brand-hover", "Brand hover", "green-800", "green-200"],
+	["--color-brand-soft", "Tinted surfaces, badges", "green-100", "green-900"],
+	["--color-on-brand", "Text on brand fills", "#ffffff", "green-950"],
+	["--color-focus", "Focus ring", "green-600", "green-400"],
+	["--color-warning", "Caution (amber)", "#8a5300", "#f0b94a"],
+	["--color-warning-soft", "Caution surfaces", "#fdf2d8", "#3a2a08"],
+	["--color-on-warning", "Text on warning fills", "#ffffff", "#231600"],
+	["--color-danger", "Errors, closures (red)", "#c22414", "#f2897d"],
+	["--color-danger-soft", "Error surfaces", "#fbeceb", "#3a1b17"],
+	["--color-on-danger", "Text on danger fills", "#ffffff", "#1a0805"],
+] as const;
+---
+
+<p class="lead">
+	Green scale built around the legacy core green <code>#3e8e17</code> (600). Text and buttons use 700 in light mode
+	and 300 in dark mode so every text pair meets WCAG AA; the core green itself is about 4.1:1 on white, so it is used
+	for the focus ring. Semantic tokens are defined once with <code>light-dark()</code>.
+</p>
+
+<h3>Green scale (primitives)</h3>
+<ul class="scale">
+	{
+		greenScale.map(([step, hex]) => (
+			<li>
+				<span class="swatch" style={`background: var(--green-${step})`} />
+				<strong>{step}</strong>
+				<code>{hex}</code>
+			</li>
+		))
+	}
+</ul>
+
+<h3>Semantic tokens</h3>
+<p class="lead">Swatches show the active theme. Switch the theme above to compare.</p>
+<ul class="auto-grid tokens">
+	{
+		semanticTokens.map(([token, use, light, dark]) => (
+			<li>
+				<span class="swatch" style={`background: var(${token})`} />
+				<code>{token}</code>
+				<span class="text-muted">{use}</span>
+				<span class="text-muted">
+					Light <code>{light}</code> · Dark <code>{dark}</code>
+				</span>
+			</li>
+		))
+	}
+</ul>
+
+<style>
+	ul {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.scale {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(5.5rem, 1fr));
+		gap: 0.5rem;
+		font-size: 0.8rem;
+	}
+
+	.scale li {
+		display: grid;
+		gap: 0.1rem;
+	}
+
+	.tokens {
+		--auto-grid-min: 16rem;
+		--auto-grid-gap: 1rem;
+	}
+
+	.tokens li {
+		display: grid;
+		gap: 0.15rem;
+		padding: 0.75rem;
+		background: var(--color-surface);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-md);
+		font-size: 0.85rem;
+	}
+
+	.swatch {
+		height: 3.5rem;
+		margin-block-end: 0.4rem;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-sm);
+	}
+</style>

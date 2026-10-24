@@ -1,0 +1,89 @@
+/*
+ * Layout primitives. See "Layout conventions" in
+ * design-docs/20-KBHFF-DESIGN-SYSTEM-PLAN.md.
+ *
+ *   Grid  → two-dimensional layouts and vertical stacks:
+ *           .stack, .auto-grid, .with-sidebar
+ *   Flex  → one-dimensional, content-sized rows that may wrap:
+ *           .cluster
+ *
+ * Spacing between siblings comes from `gap`, so primitives reset their
+ * children's block margins. Selectors are wrapped in :where() so they have
+ * zero specificity and any component style wins.
+ *
+ * Each primitive is tuned with a custom property set on the same element.
+ * They are registered with `inherits: false`, so setting one on an outer
+ * layout never changes a nested layout of the same kind. Universal syntax
+ * ("*") is used because `initial-value` may not contain `rem`; the defaults
+ * live in the var() fallbacks instead.
+ */
+
+@property --stack-gap {
+	syntax: "*";
+	inherits: false;
+}
+
+@property --cluster-gap {
+	syntax: "*";
+	inherits: false;
+}
+
+@property --auto-grid-min {
+	syntax: "*";
+	inherits: false;
+}
+
+@property --auto-grid-gap {
+	syntax: "*";
+	inherits: false;
+}
+
+@property --sidebar-width {
+	syntax: "*";
+	inherits: false;
+}
+
+@property --sidebar-gap {
+	syntax: "*";
+	inherits: false;
+}
+
+/* Vertical stack with even spacing. */
+:where(.stack) {
+	display: grid;
+	gap: var(--stack-gap, 1rem);
+	align-content: start;
+}
+
+/* Wrapping row of content-sized items: buttons, pills, tags, icon + label. */
+:where(.cluster) {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--cluster-gap, 0.75rem);
+	align-items: center;
+}
+
+/* Responsive card grid: as many columns of at least --auto-grid-min as fit. */
+:where(.auto-grid) {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--auto-grid-min, 18rem)), 1fr));
+	gap: var(--auto-grid-gap, 1.25rem);
+	align-items: start;
+}
+
+/* Main content with a sidebar; stacks below the breakpoint. */
+:where(.with-sidebar) {
+	display: grid;
+	gap: var(--sidebar-gap, clamp(1.5rem, 4vw, 2.5rem));
+	align-items: start;
+}
+
+@media (min-width: 60rem) {
+	:where(.with-sidebar) {
+		grid-template-columns: minmax(0, 1fr) var(--sidebar-width, 20rem);
+	}
+}
+
+:where(.stack, .cluster, .auto-grid, .with-sidebar) > :where(*) {
+	margin-block: 0;
+}

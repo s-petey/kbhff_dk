@@ -1,0 +1,109 @@
+---
+import Icon, { type IconName } from "./Icon.astro";
+
+export interface Step {
+	title: string;
+	description?: string;
+	href: string;
+	icon: IconName;
+}
+
+interface Props {
+	heading: string;
+	steps: Step[];
+}
+
+const { heading, steps } = Astro.props;
+---
+
+<section class="steps">
+	<h2>{heading}</h2>
+	<ol>
+		{
+			steps.map((step, index) => (
+				<li>
+					<a href={step.href}>
+						<span class="icon">
+							<Icon name={step.icon} size={28} />
+						</span>
+						<span class="number">{index + 1}</span>
+						<span class="title">{step.title}</span>
+						{step.description && <span class="description">{step.description}</span>}
+					</a>
+				</li>
+			))
+		}
+	</ol>
+</section>
+
+<style>
+	.steps {
+		display: grid;
+		gap: 1.25rem;
+	}
+
+	h2 {
+		margin: 0;
+		font-size: clamp(1.4rem, 3vw, 1.9rem);
+		letter-spacing: -0.02em;
+	}
+
+	/* Step cards: responsive columns, so grid. */
+	ol {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+		gap: 1rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	a {
+		position: relative;
+		display: grid;
+		gap: 0.35rem;
+		height: 100%;
+		padding: 1.25rem;
+		color: var(--color-text);
+		background: var(--color-surface);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-lg);
+		text-decoration: none;
+		transition: border-color 140ms ease;
+	}
+
+	a:hover {
+		color: var(--color-text);
+		border-color: var(--color-brand);
+	}
+
+	.icon {
+		display: grid;
+		place-items: center;
+		width: 3rem;
+		height: 3rem;
+		margin-bottom: 0.5rem;
+		border-radius: 999px;
+		color: var(--color-brand);
+		background: var(--color-brand-soft);
+	}
+
+	.number {
+		position: absolute;
+		top: 1rem;
+		right: 1.1rem;
+		color: var(--color-border);
+		font-size: 2rem;
+		font-weight: 800;
+		line-height: 1;
+	}
+
+	.title {
+		font-weight: 700;
+	}
+
+	.description {
+		color: var(--color-text-muted);
+		font-size: 0.9rem;
+	}
+</style>

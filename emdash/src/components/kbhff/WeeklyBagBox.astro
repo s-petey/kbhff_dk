@@ -1,0 +1,81 @@
+---
+import { format, formatDate, getMessages, resolveLocale, type Locale } from "../../i18n";
+import Card from "./Card.astro";
+import Icon from "./Icon.astro";
+
+interface Props {
+	/** Week and year of the bag; omit both when this week's bag does not exist yet. */
+	week?: number;
+	year?: number;
+	pickupDate?: Date;
+	href?: string;
+	locale?: Locale;
+}
+
+const { week, year, pickupDate, href, locale = resolveLocale(Astro.currentLocale) } = Astro.props;
+const t = getMessages(locale).weeklyBag;
+const weekLabel = week !== undefined && year !== undefined ? format(t.weekOfYear, { week, year }) : undefined;
+const hasBag = weekLabel !== undefined && Astro.slots.has("default");
+---
+
+<Card as="aside">
+	<h2><Icon name="leaf" size={20} /> {t.title}</h2>
+	{
+		hasBag ? (
+			<>
+				<p class="meta">
+					{weekLabel}
+					{pickupDate && <span> · {formatDate(locale, pickupDate)}</span>}
+				</p>
+				<div class="contents">
+					<slot />
+				</div>
+			</>
+		) : (
+			<p class="meta">{t.notCreated}</p>
+		)
+	}
+	{href && <a class="more" href={href}>{t.readMore} →</a>}
+</Card>
+
+<style>
+	h2 {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		color: var(--color-brand);
+	}
+
+	.meta {
+		color: var(--color-text-muted);
+		font-size: 0.9rem;
+	}
+
+	/* Editor-entered HTML: prose spacing uses margins. */
+	.contents :global(h4) {
+		margin: 1rem 0 0.35rem;
+		font-size: 0.8rem;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--color-text-muted);
+	}
+
+	.contents :global(ul) {
+		margin: 0;
+		padding-left: 1.1rem;
+	}
+
+	.contents :global(h4:first-child) {
+		margin-top: 0;
+	}
+
+	.contents :global(li) {
+		margin-block: 0.2rem;
+	}
+
+	.more {
+		justify-self: start;
+		font-weight: 650;
+		text-decoration: none;
+	}
+</style>

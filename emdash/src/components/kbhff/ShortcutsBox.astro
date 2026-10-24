@@ -1,0 +1,55 @@
+---
+import { getMessages, resolveLocale, type Locale } from "../../i18n";
+import { legacyAppUrl } from "../../utils/legacy-app";
+import Button from "./Button.astro";
+import Card from "./Card.astro";
+
+interface Props {
+	/** The Astro site does not know the PHP session, so the caller chooses which links to show. */
+	audience?: "guest" | "member";
+	locale?: Locale;
+}
+
+const { audience = "guest", locale = resolveLocale(Astro.currentLocale) } = Astro.props;
+const t = getMessages(locale).shortcuts;
+
+const links =
+	audience === "member"
+		? [
+				{ label: t.takeShift, href: legacyAppUrl("/medlem/tag-en-vagt") },
+				{ label: t.orderBag, href: legacyAppUrl("/butik") },
+			]
+		: [
+				{ label: t.becomeMember, href: legacyAppUrl("/bliv-medlem") },
+				{ label: t.logIn, href: legacyAppUrl("/login") },
+			];
+---
+
+<Card as="aside" tone="brand">
+	<h2>{t.title}</h2>
+	<ul>
+		{
+			links.map((link, index) => (
+				<li>
+					<Button href={link.href} variant={index === 0 ? "primary" : "secondary"}>
+						{link.label}
+					</Button>
+				</li>
+			))
+		}
+	</ul>
+</Card>
+
+<style>
+	ul {
+		display: grid;
+		gap: 0.6rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	ul :global(.button) {
+		width: 100%;
+	}
+</style>

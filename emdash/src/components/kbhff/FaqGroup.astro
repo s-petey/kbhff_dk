@@ -1,0 +1,132 @@
+---
+import { getMessages, resolveLocale, type Locale } from "../../i18n";
+
+export interface FaqQuestion {
+	question: string;
+	/** Link to the question's own page (`/faq/:slug`). */
+	href: string;
+	/** Short plain-text answer. When set, the question expands inline instead of only linking. */
+	answer?: string;
+}
+
+interface Props {
+	title: string;
+	questions: FaqQuestion[];
+	locale?: Locale;
+}
+
+const { title, questions, locale = resolveLocale(Astro.currentLocale) } = Astro.props;
+const t = getMessages(locale).faq;
+---
+
+<section class="faq-group">
+	<h2>{title}</h2>
+	{
+		questions.length === 0 ? (
+			<p class="empty">{t.empty}</p>
+		) : (
+			<div class="list">
+				{questions.map((item) =>
+					item.answer ? (
+						<details>
+							<summary>{item.question}</summary>
+							<p>{item.answer}</p>
+							<a href={item.href}>{t.openAnswer} →</a>
+						</details>
+					) : (
+						<a class="link" href={item.href}>
+							{item.question}
+						</a>
+					),
+				)}
+			</div>
+		)
+	}
+</section>
+
+<style>
+	.faq-group {
+		display: grid;
+		gap: 0.75rem;
+	}
+
+	h2 {
+		margin: 0;
+		font-size: 1.25rem;
+		letter-spacing: -0.01em;
+	}
+
+	.list {
+		overflow: hidden;
+		background: var(--color-surface);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-lg);
+	}
+
+	details,
+	.link {
+		display: block;
+		border-bottom: 1px solid var(--color-border);
+	}
+
+	.list > :last-child {
+		border-bottom: 0;
+	}
+
+	summary,
+	.link {
+		padding: 0.9rem 1.15rem;
+		color: var(--color-text);
+		font-weight: 600;
+		text-decoration: none;
+		cursor: pointer;
+	}
+
+	summary {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		list-style: none;
+	}
+
+	summary::-webkit-details-marker {
+		display: none;
+	}
+
+	summary::after {
+		flex: none;
+		color: var(--color-brand);
+		font-weight: 700;
+		content: "+";
+	}
+
+	details[open] summary::after {
+		content: "–";
+	}
+
+	.link:hover,
+	summary:hover {
+		color: var(--color-brand);
+		background: var(--color-canvas);
+	}
+
+	details p,
+	details a {
+		margin: 0;
+		padding: 0 1.15rem 0.9rem;
+	}
+
+	details p {
+		color: var(--color-text-muted);
+	}
+
+	details a {
+		display: inline-block;
+		font-weight: 650;
+		text-decoration: none;
+	}
+
+	.empty {
+		color: var(--color-text-muted);
+	}
+</style>

@@ -1,22 +1,84 @@
+/*
+ * KBHFF design tokens. Contrast ratios are listed in
+ * design-docs/20-KBHFF-DESIGN-SYSTEM-PLAN.md.
+ *
+ * Two tiers:
+ *   - Primitives (--green-*): the raw scale, built around the legacy core
+ *     green #3e8e17 (600). Same in both themes; components never use them.
+ *   - Semantic tokens (--color-*): named by role. Each is defined once with
+ *     light-dark(<light>, <dark>), resolved from `color-scheme`.
+ *
+ * Theme: follows the OS setting; `data-theme="light|dark"` on <html> forces one.
+ */
 :root {
-	color-scheme: light;
+	--green-50: #f3faef;
+	--green-100: #e4f4dc;
+	--green-200: #c9e8ba;
+	--green-300: #9ed685;
+	--green-400: #73c74d;
+	--green-500: #51a928;
+	--green-600: #3e8e17;
+	--green-700: #357914;
+	--green-800: #2a5f10;
+	--green-900: #1e3e0f;
+	--green-950: #12240a;
+
+	color-scheme: light dark;
+
+	/* Text */
+	--color-text: light-dark(#1d1f1c, #e7eae4);
+	--color-text-muted: light-dark(#5c625a, #a3aa9f);
+
+	/* Backgrounds: canvas is the page, surface sits on it (cards) */
+	--color-canvas: light-dark(#f7f8f5, #141613);
+	--color-surface: light-dark(#ffffff, #1c1f1b);
+	--color-border: light-dark(#d5dbd1, #343a31);
+
+	/* Inverse: dark band in both themes (e.g. the footer) */
+	--color-surface-inverse: light-dark(#262925, #0d0f0c);
+	--color-text-inverse: light-dark(#e9ece6, #e7eae4);
+
+	/* Brand */
+	--color-brand: light-dark(var(--green-700), var(--green-300));
+	--color-brand-hover: light-dark(var(--green-800), var(--green-200));
+	--color-brand-soft: light-dark(var(--green-100), var(--green-900));
+	--color-on-brand: light-dark(#ffffff, var(--green-950));
+
+	/* Focus ring */
+	--color-focus: light-dark(var(--green-600), var(--green-400));
+
+	/* Status: warning = caution (amber), danger = errors and closures (red) */
+	--color-warning: light-dark(#8a5300, #f0b94a);
+	--color-warning-hover: light-dark(#6b4000, #f5cf7e);
+	--color-warning-soft: light-dark(#fdf2d8, #3a2a08);
+	--color-on-warning: light-dark(#ffffff, #231600);
+	--color-danger: light-dark(#c22414, #f2897d);
+	--color-danger-hover: light-dark(#9a1d10, #f6aaa1);
+	--color-danger-soft: light-dark(#fbeceb, #3a1b17);
+	--color-on-danger: light-dark(#ffffff, #1a0805);
+
+	--shadow-sm: 0 0.4rem 1.5rem light-dark(rgb(29 31 28 / 6%), rgb(0 0 0 / 35%));
+
+	--radius-sm: 0.5rem;
+	--radius-md: 0.75rem;
+	--radius-lg: 1rem;
+	--content-width: 72rem;
+
 	font-family:
 		Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
 		sans-serif;
-	color: #202a24;
-	background: #f6f7f3;
 	font-synthesis: none;
 	text-rendering: optimizeLegibility;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+}
 
-	--color-ink: #202a24;
-	--color-muted: #657168;
-	--color-brand: #256b4b;
-	--color-brand-hover: #194d36;
-	--color-surface: #fff;
-	--color-border: #dce3dc;
-	--content-width: 72rem;
+:root[data-theme="light"] {
+	color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+	color-scheme: dark;
 }
 
 * {
@@ -27,8 +89,8 @@ body {
 	min-width: 320px;
 	min-height: 100vh;
 	margin: 0;
-	color: var(--color-ink);
-	background: #f6f7f3;
+	color: var(--color-text);
+	background: var(--color-canvas);
 	line-height: 1.65;
 }
 
@@ -45,16 +107,65 @@ a:hover {
 a:focus-visible,
 button:focus-visible,
 input:focus-visible {
-	outline: 3px solid #83bd99;
+	outline: 3px solid var(--color-focus);
 	outline-offset: 3px;
 }
 
-header {
+/* Heading defaults. Components and page templates override sizes as needed. */
+h1,
+h2,
+h3,
+h4 {
+	line-height: 1.2;
+	text-wrap: balance;
+}
+
+h1 {
+	font-size: clamp(2rem, 5vw, 3rem);
+	font-weight: 750;
+	letter-spacing: -0.04em;
+	line-height: 1.1;
+}
+
+h2 {
+	font-size: 1.5rem;
+	letter-spacing: -0.02em;
+}
+
+h3 {
+	font-size: 1.15rem;
+	letter-spacing: -0.01em;
+}
+
+/* Text utilities */
+.lead {
+	max-width: 44rem;
+	color: var(--color-text-muted);
+}
+
+.eyebrow {
+	color: var(--color-brand);
+	font-size: 0.85rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+
+.text-muted {
+	color: var(--color-text-muted);
+}
+
+.text-small {
+	font-size: 0.85rem;
+}
+
+/* Site header (Base.astro). Scoped by class so other <header> elements are unaffected. */
+.site-header {
 	background: var(--color-surface);
 	border-bottom: 1px solid var(--color-border);
 }
 
-header nav {
+.site-header nav {
 	display: flex;
 	align-items: center;
 	gap: clamp(0.75rem, 2vw, 1.75rem);
@@ -63,30 +174,32 @@ header nav {
 	margin-inline: auto;
 }
 
-header nav > a:first-child {
+.site-header nav > a:first-child {
 	margin-right: auto;
-	color: var(--color-ink);
+	color: var(--color-text);
 	font-size: 1.15rem;
 	font-weight: 750;
 	text-decoration: none;
 	white-space: nowrap;
 }
 
-header nav > a:not(:first-child) {
+.site-header nav > a:not(:first-child) {
 	font-size: 0.95rem;
 	font-weight: 600;
 	text-decoration: none;
 }
 
-header nav form {
+.site-header nav form {
 	max-width: 15rem;
 }
 
-header nav input {
+.site-header nav input {
 	width: 100%;
 	padding: 0.55rem 0.8rem;
 	border: 1px solid var(--color-border);
 	border-radius: 0.6rem;
+	color: var(--color-text);
+	background: var(--color-canvas);
 	font: inherit;
 }
 
@@ -120,7 +233,7 @@ main > ul > li {
 	background: var(--color-surface);
 	border: 1px solid var(--color-border);
 	border-radius: 1rem;
-	box-shadow: 0 0.4rem 1.5rem rgb(32 42 36 / 5%);
+	box-shadow: var(--shadow-sm);
 }
 
 main > ul > li > a {
@@ -141,14 +254,14 @@ main > ul > li h2 {
 
 main > ul > li p {
 	margin: 0.65rem 0 0;
-	color: var(--color-muted);
+	color: var(--color-text-muted);
 }
 
 main > ul > li time,
 main article time {
 	display: block;
 	margin-top: 0.75rem;
-	color: var(--color-muted);
+	color: var(--color-text-muted);
 	font-size: 0.9rem;
 }
 
@@ -168,7 +281,7 @@ main > article {
 	background: var(--color-surface);
 	border: 1px solid var(--color-border);
 	border-radius: 1rem;
-	box-shadow: 0 0.4rem 1.5rem rgb(32 42 36 / 5%);
+	box-shadow: var(--shadow-sm);
 }
 
 main > article h1 {
@@ -198,7 +311,7 @@ main > article img {
 main > aside {
 	width: min(48rem, 100%);
 	margin: 2rem auto 0;
-	color: var(--color-muted);
+	color: var(--color-text-muted);
 }
 
 main nav[aria-label="Pagination"] {
@@ -222,18 +335,18 @@ main > a {
 }
 
 @media (max-width: 640px) {
-	header nav {
+	.site-header nav {
 		flex-wrap: wrap;
 		gap: 0.75rem 1rem;
 		width: calc(100% - 2rem);
 		padding-block: 0.8rem;
 	}
 
-	header nav > a:first-child {
+	.site-header nav > a:first-child {
 		width: 100%;
 	}
 
-	header nav form {
+	.site-header nav form {
 		flex: 1 1 100%;
 		max-width: none;
 	}

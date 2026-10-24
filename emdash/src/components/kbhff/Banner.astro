@@ -1,0 +1,78 @@
+---
+interface Props {
+	/** Pick a specific banner photo (1–4). Omit for a random photo per request. */
+	photo?: 1 | 2 | 3 | 4;
+	heading?: string;
+	subheading?: string;
+}
+
+const PHOTO_COUNT = 4;
+const { photo, heading, subheading } = Astro.props;
+const index = photo ?? Math.floor(Math.random() * PHOTO_COUNT) + 1;
+---
+
+<section class:list={["banner", { "has-text": heading }]}>
+	<img src={`/brand/banners/banner-${index}.jpg`} alt="" width="1000" height="215" decoding="async" />
+	{
+		heading && (
+			<div class="text">
+				<h1>{heading}</h1>
+				{subheading && <p>{subheading}</p>}
+				<slot />
+			</div>
+		)
+	}
+</section>
+
+<style>
+	.banner {
+		position: relative;
+		overflow: hidden;
+		border-radius: var(--radius-lg);
+		background: var(--color-brand-soft);
+	}
+
+	img {
+		display: block;
+		width: 100%;
+		height: clamp(7rem, 18vw, 12rem);
+		object-fit: cover;
+	}
+
+	.has-text img {
+		height: clamp(14rem, 32vw, 22rem);
+	}
+
+	.has-text::after {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(90deg, rgb(20 32 14 / 78%), rgb(20 32 14 / 15%));
+		content: "";
+	}
+
+	.text {
+		position: absolute;
+		inset: auto 0 0;
+		z-index: 1;
+		display: grid;
+		gap: 0.75rem;
+		justify-items: start;
+		max-width: 38rem;
+		padding: clamp(1.25rem, 4vw, 2.5rem);
+		color: #fff;
+	}
+
+	h1 {
+		margin: 0;
+		font-size: clamp(1.9rem, 5vw, 3rem);
+		font-weight: 750;
+		letter-spacing: -0.03em;
+		line-height: 1.1;
+	}
+
+	p {
+		margin: 0;
+		font-size: 1.05rem;
+		opacity: 0.92;
+	}
+</style>

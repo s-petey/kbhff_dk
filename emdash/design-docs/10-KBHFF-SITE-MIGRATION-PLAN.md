@@ -31,32 +31,117 @@ and implemented.
 - Janitor pages and posts store HTML. EmDash rich text uses Portable Text, so
   an import needs a content conversion step.
 - Many PHP routes are dynamic application features, not content pages.
+- Each public URL is a controller in `theme/www/<name>.php` that selects a
+  template in `theme/templates/`. A template either loads a Janitor record
+  (CMS-made) or contains its content directly (hand-made). See
+  [Code-verified route inventory](#code-verified-route-inventory).
+- Site menus are Janitor navigation records in the database, not template
+  code, and should become EmDash menus.
 
 No public XML sitemap was available at the usual locations checked:
 `/sitemap.xml`, `/sitemap_index.xml`, `/sitemap-index.xml`, and `/sitemap.php`
 returned 404. `robots.txt` did not provide readable sitemap details. The route
-inventory below is therefore an initial inventory from public navigation,
-linked pages, and repository routes; it is not yet a complete crawl.
+inventory below combines public navigation, linked pages, and a review of the
+PHP controllers and templates; it is not yet a complete crawl, and which
+slug-based pages exist can only be confirmed from the database.
 
-## Initial page and route inventory
+## Code-verified route inventory
+
+Reviewed 2026-10-24 against the PHP theme in this repository (`theme/www/` and
+`theme/templates/`). Routes and templates have not changed since commit
+`c1d3dcec`.
+
+**Built how** uses these values:
+
+- **CMS**: content comes from records editors manage in Janitor admin.
+- **Hand-made**: content is written in the PHP template.
+- **Mixed**: hand-made template with some CMS-managed parts.
+- **Workflow**: application feature, not a content page.
+
+| Route | Controller → template | Content source in code | Built how | Notes |
+| --- | --- | --- | --- | --- |
+| `/` | `index.php` → `pages/front.php` | Posts tagged `on:frontpage` (max 6); this week's `weeklybag` record for the step-4 link. A `page:front` record is loaded only for share metadata. | **Mixed, mostly hand-made** | Heading "Velkommen til KBHFF", the four "Nemt at komme i gang" steps (inline SVG icons), the interview video (`/assets/videos/interview.mp4`) and calls to action are hard-coded. |
+| `/forside` | `forside.php` | None | Redirect | Redirects to `/`. |
+| `/om` | `om.php` → `pages/about.php` | Page tagged `page:about`; menu `sub-about` | CMS | — |
+| `/om/:slug` | `om.php` → `pages/view.php` | Any published `page` record whose slug (`sindex`) matches | CMS | Generic slug route. `10-grundprincipper`, `organisationen`, `tidslinje`, `produkter` and `om-producenterne` appear nowhere in code; they exist only as database records. |
+| `/english` | `english.php` → `pages/english.php` | Page tagged `page:english`; menu `sub-english` | CMS | The `/english/:slug` route is commented out, so English sub-pages cannot be reached today. |
+| `/nyheder` | `nyheder.php` → `posts/posts.php` | `post` records, 20 per page; category list from post tags | CMS | Pagination at `/nyheder/page/:n`. |
+| `/nyheder/:slug` | `nyheder.php` → `posts/post.php` | `post` record | CMS | — |
+| `/nyheder/tag/:tag`, `/nyheder/tag/:tag/page/:n` | `nyheder.php` → `posts/posts_tag.php` | Posts filtered by tag | CMS | Tag archive. |
+| `/nyheder/tag/:tag/:slug` | `nyheder.php` → `posts/post_tag.php` | `post` record within a tag context | CMS | Duplicate article URL under a tag. |
+| `/faq` | `faq.php` → `faq/list.php` | `qna` records grouped by tags from the `faq` tag list, ordered by position | CMS | Fields: `question`, `answer`. `qna` is a Janitor core item type; it is not defined in the theme. |
+| `/faq/:slug` | `faq.php` → `faq/view.php` | `qna` record | CMS | Does not filter by published status. |
+| `/afdelinger` | `afdelinger.php` → `departments/departments.php` | Intro: page tagged `page:departments`. List: `project_departments` table. | CMS intro + admin data | Departments are edited at `/janitor/department`. They are not Janitor items. |
+| `/afdelinger/:name` | `afdelinger.php` → `departments/departments-view.php` | `project_departments` row matched by **name** | Admin data | Fields: address, geolocation, email, opening hours, MobilePay ID, description, HTML. |
+| `/ugens-pose` | `ugens-pose.php` → `weeklybag/list.php` | Intro: page tagged `page:weekly-bag`. List: `weeklybag` records, newest first, 52 per page. | CMS | Pagination at `/ugens-pose/liste/:slug`. |
+| `/ugens-pose/:slug` | `ugens-pose.php` → `weeklybag/view.php` | `weeklybag` record (slug `pose-YYYY-uge-WW`) | CMS | Editor-typed HTML; see [Data sources](#data-sources-behind-the-public-pages). Does not filter by published status. |
+| `/medlem` | `medlem.php` → `pages/member.php` | Page tagged `page:member`; menu `sub-member` | CMS | — |
+| `/medlem/:slug` | `medlem.php` → `pages/view.php` | Any published `page` record whose slug matches | CMS | Includes `quick-start-guide`. `/medlem/tag-en-vagt` uses the same route but requires login. |
+| `/kontakt` | `kontakt.php` → `pages/contact.php` | Page tagged `page:contact` | CMS | — |
+| `/persondata` | `persondata.php` → `pages/person_data.php` | Page tagged `page:persondata` | CMS | — |
+| `/handelsbetingelser` | `handelsbetingelser.php` → `pages/business_terms.php` | Page tagged `page:businessterms` | CMS | — |
+| `/bliv-medlem` (+ steps) | `bliv-medlem.php` → `signup/*.php` | Intro text from pages tagged `page:signup`, `page:signupfees`, `page:already-member`, `page:bliv-medlem-verificer`, `page:signup-confirmed` and `page:signup-confirm-failed` | Workflow + CMS text | Forms and logic are hand-made. |
+| `/login` (+ password reset) | `login.php` → `pages/kbhff-login.php`, `pages/forgot_password*.php`, `profile/*.php` | Intro text from page tagged `page:login` | Workflow + CMS text | — |
+| `/butik`, `/bestil`, `/profil`, `/butiksvagt`, `/medlemshjaelp`, `/indkoeb`, `/bogholder`, `/massemail`, `/lokaladmin` | One controller each | Application data | Workflow | Shop, profile, shop-shift, volunteer, purchasing, accounting, mass-mail and local-admin tools. |
+
+These template parts are hand-made on every page that has them:
+
+- the "Genveje" / "Shortcuts" box (shift, order, login and signup links)
+- the Mailchimp newsletter signup form
+
+### Data sources behind the public pages
+
+| Data | Storage | Edited at | Fields | Tied to ordering? | Migration note |
+| --- | --- | --- | --- | --- | --- |
+| Pages | Janitor `page` items (`item_page`); model defined in the theme (`theme/classes/items/type.page.class.php`) | `/janitor/admin/page` | `published_at`, `name` (title), `subheader`, `description` (SEO, max 155 chars), `html` (allowed: `p`, `h2`–`h4`, `ul`, `ol`, downloads, images, Vimeo, YouTube), `single_media` (one 960×540 PNG/JPG), `mediae` (up to 20 PNG/JPG), tags | No | Fixed pages are found by tag (`page:about`, `page:contact`, …). Generic pages are found by slug under `/om/` and `/medlem/`. Media is served from `/images/<item_id>/<variant>/…` (`theme/library/public`). |
+| News | Janitor `post` items (`item_post`); model defined in the theme (`type.post.class.php`) | `/janitor/post` | `published_at`, `name`, `classname` (CSS class), `description` (SEO, max 155 chars), `html` (same allowed tags as pages), `mediae` (up to 20 PNG/JPG/MP4), tags | No | The `on:frontpage` tag selects home-page features. Posts can include MP4 video. |
+| FAQ | Janitor core `qna` items (`item_qna`; `submodules/janitor/src/classes/items/type.qna.class.php`) | `/janitor/admin/qna` | `question`, `answer` (allowed: `p`, `h3`, `h4`, `ul`, `ol`, images, downloads), `position`, `faq:<category>` tag. `name` is generated from the first 45 characters of the question. `about_item_id` is an optional link to another item. | No | Category names come from the `faq` tag list. |
+| All item types | Shared `items` table (Janitor core) | — | `sindex` (URL slug), `status` (1 = published), `itemtype`, `user_id`, `created_at`, `modified_at`, `published_at` | — | Preserve `sindex` as the EmDash slug and `published_at` as the publication date. |
+| Weekly bags | Janitor `weeklybag` items (`item_weeklybag`) | `/janitor/weeklybag` | `name`, `week`, `year`, `html` (short contents), `full_description` | **No**: editor-typed HTML, not derived from orders | Can become an EmDash collection. The orderable product is a separate `productweeklybag` item. |
+| Departments | `project_departments` table (not an item type) | `/janitor/department` | name, abbreviation, address, postal code, city, geolocation, lat/long, email, opening hours, MobilePay ID, accepts signup, description, `html` | **Yes**: linked to pickup dates, products and members (`project_department_pickupdates`, `project_department_products`, `user_department`) | Decide on a single source of truth before copying these into EmDash. |
+| Menus | Janitor `navigation` + `navigation_nodes` | `/janitor/admin/navigation` | `node_name`, `node_link`, `node_item_id` (link to an item), `node_target`, `node_fallback` (alternative link, for example `/login`), `relation` (parent node, for nesting), `position` | No | Handles in use: `main-public`, `footer`, `sub-about`, `sub-english`, `sub-member`, `sub-butiksvagt`. Map them to EmDash menus. |
+| Product prices on `/om/produkter` | Typed into the page's HTML | `/janitor/admin/page` | — | Not synchronized today | Any link to ordering-system prices would be new functionality. |
+
+### What the code cannot confirm
+
+- **Which slug pages exist.** Pages under `/om/` and `/medlem/` exist only in
+  the database. The repository fixture
+  (`theme/config/db/default_data/items.sql`, dated 2018–2020) contains only
+  these pages: `persondata`, `allerede-medlem`, `tilmelding`,
+  `vaelg-medlemskab`, `afdelinger-i-kbhff`, `for-leverandoerer` and
+  `handelsbetingelser`. `for-leverandoerer` is not in the inventory below; its
+  live status and URL are unknown.
+- **The exact Janitor version.** The parent repository pins
+  `submodules/janitor` to commit `30d9c481`, a local port-fix commit (see
+  `README.md`) that was never pushed to `parentnode/janitor` and cannot be
+  fetched. The Janitor models above were reviewed at the previous upstream pin,
+  `c5cf864c` (2025-09-03), which differs only by that fix. The theme's `page`
+  and `post` models take precedence over Janitor's, because Janitor puts the
+  theme path first on the PHP include path (`src/config/init.php`).
+- **Content visibility.** `/faq/:slug` and `/ugens-pose/:slug` do not check
+  published status, so unpublished records may be reachable by URL. Use the
+  database `status` field, not URL reachability, to decide what is live.
+
+## Page and route inventory and decisions
 
 | Live page or route | Live-site evidence reviewed (2026-10-22) | Content decision | Rendering / behavior decision |
 | --- | --- | --- | --- |
-| `/` | The home page features selected recent news and a link to the news archive. | EmDash owns the news entries and any editor-managed home-page copy or featured links. | Astro owns the home-page layout and queries EmDash for selected published content. |
-| `/nyheder`, `/nyheder/:slug` | The archive is a dated feed; articles include editorial text and sometimes English summaries. | Store articles in EmDash `posts`, with locale variants where translations are maintained. | Astro owns archive and article templates, pagination, locale-aware links, and metadata. |
-| `/om`, `/english` | `/om` is organization overview, values, and history. `/english` is a substantial English overview that also includes the principles and membership/product information. | EmDash `pages`; use related translated entries for maintained locale variants. | Astro renders the page entries. A route can be nested or use an explicit path mapping; do not hard-code long-form copy in Astro. |
+| `/` (and `/forside`, which redirects to `/`) | The home page features selected recent news and a link to the news archive. | EmDash owns the news entries; featured posts are selected today by the `on:frontpage` tag. The home-page copy (welcome heading, four steps, video, calls to action) is hard-coded in `pages/front.php`, with no editor-managed copy. Decide whether to move this copy into EmDash (for example a `home` page entry or widget area) or keep it in the Astro template. | Astro owns the home-page layout and queries EmDash for featured posts and the current weekly bag. Redirect `/forside` to `/`. |
+| `/nyheder`, `/nyheder/:slug`, `/nyheder/page/:n`, `/nyheder/tag/:tag`, `/nyheder/tag/:tag/page/:n`, `/nyheder/tag/:tag/:slug` | The archive is a dated feed; articles include editorial text and sometimes English summaries. | Store articles in EmDash `posts` with a taxonomy for the legacy post tags, with locale variants where translations are maintained. | Astro owns archive, tag-archive and article templates, pagination, locale-aware links, and metadata. Make `/nyheder/:slug` the canonical article URL and redirect `/nyheder/tag/:tag/:slug` to it. |
+| `/om`, `/english` | `/om` is organization overview, values, and history. `/english` is a substantial English overview that also includes the principles and membership/product information. | EmDash `pages`; use related translated entries for maintained locale variants. Each is a single Janitor page (`page:about`, `page:english`) with its own sub-menu (`sub-about`, `sub-english`). `/english/:slug` sub-routes are disabled in the current code. | Astro renders the page entries. A route can be nested or use an explicit path mapping; do not hard-code long-form copy in Astro. |
 | `/om/10-grundprincipper` | A long-form, ten-section values statement, revised December 2024; corresponding English material exists in `/english`. | EmDash page content; translate/review as a linked locale entry. | Astro generic CMS page template. |
 | `/om/organisationen` | Long-form description of governance, departments, warehouse, purchasing and IT groups; includes operational staffing details. | EmDash page content, with review because several facts can change. | Astro generic CMS page template. |
 | `/om/tidslinje` | Long, year/month-based organization history that changes as milestones are added. | EmDash page content or structured timeline records if editors need to maintain individual milestones. Start with a CMS page; do not bake dates into Astro. | Astro generic page template; use structured entries only if the timeline needs filtering or reuse. |
-| `/om/produkter`, `/om/om-producenterne` | Product page lists current prices, member price tiers, seasonal products, and suppliers; producer page is a list of suppliers and outbound links. | EmDash content. For products/prices that must stay synchronized with ordering, treat the ordering system as the source of truth rather than duplicate editable price data in CMS. Supplier profiles can be structured EmDash entries if reused elsewhere. | Astro renders CMS content; dynamic current prices should come from an approved read-only integration, not constants in templates. |
+| `/om/produkter`, `/om/om-producenterne` | Product page lists current prices, member price tiers, seasonal products, and suppliers; producer page is a list of suppliers and outbound links. | EmDash content. Today the prices are typed by hand into the page's HTML and are not synchronized with ordering. Migrating them as page content keeps current behavior; linking them to ordering-system prices would be new functionality. Supplier profiles can be structured EmDash entries if reused elsewhere. | Astro renders CMS content. If a price integration is approved, current prices should come from a read-only source, not constants in templates. |
 | `/faq`, `/faq/:slug` | The live FAQ is grouped by topics and contains frequently updated membership, ordering, and volunteer answers. Its navigation marks the FAQ as Danish-only; the English page points users to it. | EmDash FAQ collection with question, answer, and topic fields. Translate selected answers as linked entries; do not invent English copy. | Astro owns grouped FAQ and question templates, query/filter behavior, and localized route generation. |
-| `/afdelinger`, `/afdelinger/:slug` | The listing contains addresses, pickup hours, and status notes. Amager and Frederiksberg detail pages have English text; Logik is a cooperative-only department and Vanløse has a closure notice, so status is meaningful data. | EmDash structured department records for editor-managed descriptions, addresses, hours, contacts, and status. Confirm each branch's current data and translation before creating records. | Astro owns directory and detail templates. Keep joining, ordering, and account actions linked to their existing workflows. |
-| `/ugens-pose`, `/ugens-pose/:slug` | The archive lists weekly bags. A detail page contains bag categories, item quantities, producer, unit prices, and pre-order extras. These are time-sensitive, commerce-adjacent facts. | Keep live order/bag facts in their authoritative ordering system unless a supported export or synchronization process is approved. EmDash can own explanatory copy and curated archive entries only when editors are responsible for them. | Astro renders a read-only view from the approved source. Do not create fictional week data or place live order-derived values in hard-coded templates. |
-| `/medlem/quick-start-guide` | The page contains Danish and English guidance for shifts, ordering, pickup, membership, and links into account workflows. | EmDash page content with locale variants; the current live page already has an English section, so do not create a duplicate translation. | Astro generic CMS page template. Keep account and order actions external to this content page. |
+| `/afdelinger`, `/afdelinger/:slug` | The listing contains addresses, pickup hours, and status notes. Amager and Frederiksberg detail pages have English text; Logik is a cooperative-only department and Vanløse has a closure notice, so status is meaningful data. | The intro text is a Janitor page (`page:departments`). Departments are rows in `project_departments`, edited at `/janitor/department`. They are not CMS items: the same rows link to pickup dates, products and member department assignments used by ordering. Choose one source of truth before copying them into EmDash. Options: keep the PHP system authoritative and read it, sync one way into EmDash, or move descriptive fields only (description, `html`, opening hours) into EmDash. Confirm each branch's current data and translation before creating records. | Astro owns directory and detail templates. Legacy detail URLs use the department **name** (`/afdelinger/Amager`), not a slug, so map or redirect them. Keep joining, ordering, and account actions linked to their existing workflows. |
+| `/ugens-pose`, `/ugens-pose/:slug`, `/ugens-pose/liste/:slug` | The archive lists weekly bags. A detail page contains bag categories, item quantities, producer, unit prices, and pre-order extras. | Weekly bags are editor-typed Janitor items (`weeklybag`: name, week, year, short `html` contents, `full_description`). They are not derived from orders. The orderable product is a separate `productweeklybag` item. Model them as an EmDash `weekly_bags` collection with the same fields and migrate the history. The intro text is a Janitor page (`page:weekly-bag`). Do not create fictional week data. | Astro owns archive (paginated, newest first) and detail templates, plus a "this week's bag" component for the home page and sidebar. Preserve the `pose-YYYY-uge-WW` slugs. |
+| `/medlem`, `/medlem/:slug` (including `/medlem/quick-start-guide` and `/medlem/tag-en-vagt`) | The quick-start page contains Danish and English guidance for shifts, ordering, pickup, membership, and links into account workflows. | EmDash page content with locale variants. `/medlem` is a Janitor page (`page:member`) with the `sub-member` menu; sub-pages are found by slug. The current live quick-start page already has an English section, so do not create a duplicate translation. | Astro generic CMS page template. `/medlem/tag-en-vagt` requires login today; decide whether it stays in the PHP application. Keep account and order actions external to these content pages. |
 | `/kontakt` | The page is a directory of organization and department contact details. | EmDash page or structured contact records; editors need to maintain email addresses and contact routing. | Astro page template; use links such as `mailto:` without embedding the directory in code. |
 | `/persondata` | The live page describes member/order data use, retention, rights, and contacts. It labels an English version, but the fetched page content contained only Danish. | EmDash page with revision history; require privacy/legal review and verified English copy before publication. | Astro renders the approved content and metadata; do not paraphrase legal commitments in code. |
 | `/handelsbetingelser` | The page contains supplier and member sales/delivery terms, payment and order rules, and was dated September 2026. | EmDash page with revision history; require legal/operational review and a separately reviewed English version. | Astro renders approved content; do not expose stale or machine-translated terms as authoritative. |
-| `/bliv-medlem`, `/butik`, `/medlem`, `/profil`, `/login` | These routes perform membership, shopping, ordering, account, or authentication tasks. | Not CMS pages. Keep their transactional data and workflows in the existing system initially. | Do not recreate them as static Astro or EmDash pages. Astro may link to the existing application. |
+| `/bliv-medlem`, `/login` | These routes perform membership signup and authentication. | Not CMS pages, but their intro text comes from Janitor pages (`page:signup`, `page:signupfees`, `page:already-member`, `page:bliv-medlem-verificer`, `page:signup-confirmed`, `page:signup-confirm-failed`, `page:login`). That text stays in Janitor while the workflows stay in PHP. | Do not recreate them as static Astro or EmDash pages. Astro may link to the existing application. |
+| `/butik`, `/bestil`, `/profil`, `/butiksvagt`, `/medlemshjaelp`, `/indkoeb`, `/bogholder`, `/massemail`, `/lokaladmin` | These routes perform shopping, ordering, account, shop-shift, volunteer, purchasing, accounting, mass-mail and local-admin tasks. | Not CMS pages. Keep their transactional data and workflows in the existing system. | Do not recreate them as static Astro or EmDash pages. Astro may link to the existing application. |
 
 This is an evidence-based first-pass classification, not a complete crawl.
 The live English coverage is uneven: `/english` includes the organization and
@@ -159,8 +244,12 @@ public rendering.
 
 - Keep EmDash `posts` for news articles.
 - Keep `pages` for ordinary static pages.
-- Add structured collections for FAQs, departments, and weekly bags if those
-  sections are in scope.
+- Add structured collections for FAQs and weekly bags if those sections are
+  in scope.
+- Decide the source of truth for departments before modeling them; they are
+  shared with ordering (see [Data sources](#data-sources-behind-the-public-pages)).
+- Map the Janitor menus (`main-public`, `footer`, `sub-about`, `sub-english`,
+  `sub-member`) to EmDash menus.
 - Preserve legacy slugs and route patterns where practical. Record redirect
   requirements for URLs that cannot be preserved.
 - Decide how Danish and English content should be represented and linked.
@@ -168,9 +257,13 @@ public rendering.
 ### 4. Prepare and review the import
 
 - Read legacy content without changing the existing database.
-- Map legacy page fields (`name`, `subheader`, `description`, `html`, media) and
-  post fields (`name`, `description`, `html`, tags, media, dates) to the
-  approved EmDash models.
+- Map legacy page fields (`name`, `subheader`, `description`, `html`, media),
+  post fields (`name`, `description`, `html`, tags, media, dates), FAQ fields
+  (`question`, `answer`, category tag, position) and weekly-bag fields
+  (`name`, `week`, `year`, `html`, `full_description`) to the approved EmDash
+  models.
+- Import only records with published status; some legacy detail routes show
+  unpublished records.
 - Convert supported HTML formatting into Portable Text and report content that
   cannot be converted cleanly for manual review.
 - Preserve publication dates and slugs where the target model supports them.
@@ -182,8 +275,8 @@ public rendering.
 
 - Replace the starter homepage and adapt the existing EmDash layout/navigation
   for KBHFF.
-- Implement Astro list/detail templates for news, static pages, FAQs, and
-  departments. Use an approved read-only source for current weekly-bag data.
+- Implement Astro list/detail templates for news (including tag archives),
+  static pages, FAQs, departments, and weekly bags.
 - Keep EmDash admin content management available to editors.
 - Link operational actions to the existing member system until replacements
   have been explicitly designed and built.

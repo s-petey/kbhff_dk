@@ -1,0 +1,41 @@
+---
+import Steps from "../../../components/kbhff/Steps.astro";
+import type { Locale } from "../../../i18n";
+import { legacyAppUrl } from "../../../utils/legacy-app";
+
+interface Props {
+	locale: Locale;
+}
+
+const { locale } = Astro.props;
+const text = {
+	en: {
+		heading: "Easy to get started",
+		steps: [
+			["Become a member", "Join the cooperative."],
+			["Order a bag", "Order in the online shop."],
+			["Pick up your order", "At your department on pickup day."],
+			["Enjoy the weekly bag", "Local, organic produce."],
+		],
+	},
+	da: {
+		heading: "Nemt at komme i gang",
+		steps: [
+			["Bliv medlem", "Meld dig ind i fællesskabet."],
+			["Bestil en pose", "Bestil i Grøntshoppen."],
+			["Hent din ordre", "I din afdeling på afhentningsdagen."],
+			["Nyd ugens pose", "Lokale, økologiske råvarer."],
+		],
+	},
+}[locale];
+---
+
+<Steps
+	heading={text.heading}
+	steps={[
+		{ title: text.steps[0][0], description: text.steps[0][1], href: legacyAppUrl("/bliv-medlem"), icon: "member" },
+		{ title: text.steps[1][0], description: text.steps[1][1], href: legacyAppUrl("/butik"), icon: "basket" },
+		{ title: text.steps[2][0], description: text.steps[2][1], href: "/afdelinger", icon: "pin" },
+		{ title: text.steps[3][0], description: text.steps[3][1], href: "/ugens-pose", icon: "leaf" },
+	]}
+/>

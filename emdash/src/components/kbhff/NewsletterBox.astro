@@ -1,0 +1,99 @@
+---
+import { getMessages, resolveLocale, type Locale } from "../../i18n";
+import Card from "./Card.astro";
+import Icon from "./Icon.astro";
+
+interface Props {
+	locale?: Locale;
+}
+
+const { locale = resolveLocale(Astro.currentLocale) } = Astro.props;
+const t = getMessages(locale).newsletter;
+
+// Same Mailchimp list as the legacy site's sidebar form.
+const MAILCHIMP_ACTION =
+	"https://kbhff.us15.list-manage.com/subscribe/post?u=d2a926649ebcf316af87a05bb&id=141ae6f59f";
+const MAILCHIMP_HONEYPOT = "b_d2a926649ebcf316af87a05bb_141ae6f59f";
+
+const inputId = `newsletter-email-${locale}`;
+---
+
+<Card as="aside">
+	<h2><Icon name="mail" size={20} /> {t.title}</h2>
+	<p>{t.body}</p>
+	<form action={MAILCHIMP_ACTION} method="post" target="_blank">
+		<div class="honeypot" aria-hidden="true">
+			<input type="text" name={MAILCHIMP_HONEYPOT} tabindex="-1" value="" />
+		</div>
+		<label for={inputId}>{t.emailLabel}</label>
+		<div class="row">
+			<input id={inputId} type="email" name="EMAIL" autocomplete="email" required />
+			<button type="submit">{t.submit}</button>
+		</div>
+	</form>
+</Card>
+
+<style>
+	h2 {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	p {
+		color: var(--color-text-muted);
+		font-size: 0.95rem;
+	}
+
+	/* Label above the input row. */
+	form {
+		display: grid;
+		gap: 0.35rem;
+	}
+
+	label {
+		font-size: 0.85rem;
+		font-weight: 650;
+	}
+
+	/* Input + button: one row that wraps on narrow cards. */
+	.row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	input {
+		flex: 1 1 12rem;
+		min-width: 0;
+		min-height: 2.75rem;
+		padding: 0.55rem 0.8rem;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-sm);
+		color: var(--color-text);
+		background: var(--color-canvas);
+		font: inherit;
+	}
+
+	button {
+		flex: none;
+		min-height: 2.75rem;
+		padding: 0.55rem 1.1rem;
+		border: 0;
+		border-radius: var(--radius-sm);
+		color: var(--color-on-brand);
+		background: var(--color-brand);
+		font: inherit;
+		font-weight: 650;
+		cursor: pointer;
+	}
+
+	button:hover {
+		background: var(--color-brand-hover);
+	}
+
+	.honeypot {
+		position: absolute;
+		left: -5000px;
+	}
+</style>

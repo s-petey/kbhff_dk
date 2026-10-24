@@ -1,0 +1,50 @@
+---
+import ArticleCard from "../../../components/kbhff/ArticleCard.astro";
+import type { Locale } from "../../../i18n";
+
+interface Props {
+	locale: Locale;
+}
+
+const { locale } = Astro.props;
+const date = new Date("2026-10-20T10:00:00Z");
+const text = {
+	en: {
+		withImage: "Example: news item with an image",
+		withImageExcerpt: "A short summary shown in the news list and on the home page.",
+		long: "Example: news item without an image and with a longer title that wraps over several lines",
+		longExcerpt: "Without an image the card is more compact.",
+		titleOnly: "Example: news item with a title only",
+		tags: ["Community", "Purchasing", "Weekly bag"],
+	},
+	da: {
+		withImage: "Eksempel: nyhed med billede",
+		withImageExcerpt: "En kort beskrivelse af nyheden, som vises i listen og på forsiden.",
+		long: "Eksempel: nyhed uden billede, men med en længere titel der bryder over flere linjer",
+		longExcerpt: "Uden billede fylder kortet mindre.",
+		titleOnly: "Eksempel: nyhed med kun en titel",
+		tags: ["Fællesskab", "Indkøb", "Ugens pose"],
+	},
+}[locale];
+---
+
+<div class="auto-grid">
+	<ArticleCard
+		href="#articles"
+		title={text.withImage}
+		excerpt={text.withImageExcerpt}
+		date={date}
+		tags={[text.tags[0]]}
+		imageSrc="/brand/banners/banner-2.jpg"
+		locale={locale}
+	/>
+	<ArticleCard
+		href="#articles"
+		title={text.long}
+		excerpt={text.longExcerpt}
+		date={date}
+		tags={[text.tags[1], text.tags[2]]}
+		locale={locale}
+	/>
+	<ArticleCard href="#articles" title={text.titleOnly} date={date} locale={locale} />
+</div>

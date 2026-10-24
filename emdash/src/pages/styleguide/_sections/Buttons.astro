@@ -1,0 +1,23 @@
+---
+import Button from "../../../components/kbhff/Button.astro";
+import type { Locale } from "../../../i18n";
+
+interface Props {
+	locale: Locale;
+}
+
+const { locale } = Astro.props;
+const text = {
+	en: { primary: "Primary", secondary: "Secondary", warning: "Warning", danger: "Danger", small: "Small" },
+	da: { primary: "Primær", secondary: "Sekundær", warning: "Advarsel", danger: "Fare", small: "Lille" },
+}[locale];
+---
+
+<div class="cluster">
+	<Button href="#buttons">{text.primary}</Button>
+	<Button href="#buttons" variant="secondary">{text.secondary}</Button>
+	<Button href="#buttons" variant="warning">{text.warning}</Button>
+	<Button href="#buttons" variant="danger">{text.danger}</Button>
+	<Button href="#buttons" size="sm">{text.small}</Button>
+	<Button href="#buttons" variant="secondary" size="sm">{text.small}</Button>
+</div>
