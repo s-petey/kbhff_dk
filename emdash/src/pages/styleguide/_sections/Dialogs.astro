@@ -1,0 +1,108 @@
+---
+import Button from "../../../components/kbhff/Button.astro";
+import Dialog from "../../../components/kbhff/Dialog.astro";
+import type { Locale } from "../../../i18n";
+
+interface Props {
+	locale: Locale;
+}
+
+const { locale } = Astro.props;
+const text = {
+	en: {
+		openInfo: "Information dialog",
+		openConfirm: "Confirmation dialog",
+		openLong: "Long content",
+		result: "Confirmation dialog closed with:",
+		none: "not opened yet",
+		infoTitle: "Example: pickup this week",
+		infoDescription: "Short, non-blocking information.",
+		infoBody: "Example: pickup moves to Thursday this week because of the holiday.",
+		next: "Continue to confirmation",
+		ok: "OK",
+		confirmTitle: "Example: cancel your order?",
+		confirmDescription: "A decision the person must make before continuing.",
+		confirmBody: "Example: your bag for week 44 will be cancelled. This cannot be undone.",
+		confirm: "Cancel order",
+		longTitle: "Example: terms for shift volunteers",
+		longDescription: "The header and actions stay in view while the body scrolls.",
+		longParagraph:
+			"Example paragraph. Placeholder text that makes the dialog taller than the screen, so the body scrolls between the fixed header and the fixed actions. Scroll shadows show when there is more content above or below.",
+		accept: "I understand",
+	},
+	da: {
+		openInfo: "Informationsdialog",
+		openConfirm: "Bekræftelsesdialog",
+		openLong: "Langt indhold",
+		result: "Bekræftelsesdialogen blev lukket med:",
+		none: "ikke åbnet endnu",
+		infoTitle: "Eksempel: afhentning i denne uge",
+		infoDescription: "Kort information, der ikke kræver en beslutning.",
+		infoBody: "Eksempel: afhentning flytter til torsdag i denne uge på grund af helligdagen.",
+		next: "Fortsæt til bekræftelse",
+		ok: "OK",
+		confirmTitle: "Eksempel: annuller din bestilling?",
+		confirmDescription: "En beslutning, der skal tages, før man kan fortsætte.",
+		confirmBody: "Eksempel: din pose for uge 44 bliver annulleret. Det kan ikke fortrydes.",
+		confirm: "Annuller bestilling",
+		longTitle: "Eksempel: vilkår for frivillige på vagt",
+		longDescription: "Overskriften og knapperne bliver stående, mens indholdet ruller.",
+		longParagraph:
+			"Eksempelafsnit. Fyldtekst, der gør dialogen højere end skærmen, så indholdet ruller mellem den faste overskrift og de faste knapper. Skygger viser, når der er mere indhold over eller under.",
+		accept: "Jeg forstår",
+	},
+}[locale];
+---
+
+<p class="lead">
+	Native <code>&lt;dialog&gt;</code> with Invoker Commands (<code>commandfor</code> / <code>command</code>),
+	<code>closedby="any"</code> and <code>&lt;form method="dialog"&gt;</code> for actions. Header and actions stay in
+	view; only the body scrolls. <strong>Only one dialog is open at a time</strong>: "{text.next}" closes the first
+	dialog before opening the second, and focus still returns to the button you started from.
+</p>
+
+<div class="cluster">
+	<Button variant="secondary" commandfor="sg-dialog-info" command="show-modal">{text.openInfo}</Button>
+	<Button variant="secondary" commandfor="sg-dialog-confirm" command="show-modal">{text.openConfirm}</Button>
+	<Button variant="secondary" commandfor="sg-dialog-long" command="show-modal">{text.openLong}</Button>
+</div>
+
+<p class="text-small text-muted" aria-live="polite">
+	{text.result} <code id="sg-dialog-result">{text.none}</code>
+</p>
+
+<Dialog id="sg-dialog-info" title={text.infoTitle} description={text.infoDescription} locale={locale}>
+	<p>{text.infoBody}</p>
+	<Fragment slot="actions">
+		<Button variant="secondary" commandfor="sg-dialog-confirm" command="show-modal">{text.next}</Button>
+		<Button type="submit" value="ok">{text.ok}</Button>
+	</Fragment>
+</Dialog>
+
+<Dialog
+	id="sg-dialog-confirm"
+	title={text.confirmTitle}
+	description={text.confirmDescription}
+	size="sm"
+	cancel
+	locale={locale}
+>
+	<p>{text.confirmBody}</p>
+	<Button slot="actions" type="submit" value="confirm" variant="danger">{text.confirm}</Button>
+</Dialog>
+
+<Dialog id="sg-dialog-long" title={text.longTitle} description={text.longDescription} locale={locale}>
+	{Array.from({ length: 12 }, (_, index) => <p>{index + 1}. {text.longParagraph}</p>)}
+	<Button slot="actions" type="submit" value="accept">{text.accept}</Button>
+</Dialog>
+
+<script>
+	// Demo of reading the result: the submit button's value becomes `returnValue`.
+	const dialog = document.getElementById("sg-dialog-confirm");
+	const output = document.getElementById("sg-dialog-result");
+	if (dialog instanceof HTMLDialogElement && output) {
+		dialog.addEventListener("close", () => {
+			output.textContent = dialog.returnValue || "(Escape, backdrop or close button)";
+		});
+	}
+</script>

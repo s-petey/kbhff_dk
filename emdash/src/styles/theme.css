@@ -73,6 +73,11 @@
 	-moz-osx-font-smoothing: grayscale;
 }
 
+/* Reserve the scrollbar's space so locking page scroll (e.g. under a dialog) does not shift the layout. */
+html {
+	scrollbar-gutter: stable;
+}
+
 :root[data-theme="light"] {
 	color-scheme: light;
 }

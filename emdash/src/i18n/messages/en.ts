@@ -40,6 +40,10 @@ const en = {
 		empty: "No questions in this category yet.",
 		openAnswer: "Open the answer",
 	},
+	dialog: {
+		close: "Close",
+		cancel: "Cancel",
+	},
 };
 
 export type Messages = typeof en;

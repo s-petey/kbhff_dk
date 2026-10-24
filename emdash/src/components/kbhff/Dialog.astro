@@ -1,0 +1,281 @@
+---
+/**
+ * Modal dialog on the native <dialog> element.
+ *
+ * Principle: only one dialog is open at a time (see "Dialogs" in
+ * design-docs/20-KBHFF-DESIGN-SYSTEM-PLAN.md). Opening a dialog closes any
+ * open one first, and focus returns to the element that opened the first
+ * dialog. Never place a Dialog inside another Dialog.
+ *
+ * Usage (no custom JavaScript needed by callers):
+ *   open:   <Button commandfor="my-dialog" command="show-modal">…</Button>
+ *   close:  <Button commandfor="my-dialog" command="close">…</Button>, Escape,
+ *           or a click on the backdrop (`closedby="any"`)
+ *   result: buttons in the `actions` slot with `type="submit" value="…"`
+ *           close the dialog through <form method="dialog">; read
+ *           `dialog.returnValue` in a `close` listener.
+ *
+ * The header and actions stay in view; only the body scrolls.
+ */
+import { getMessages, resolveLocale, type Locale } from "../../i18n";
+import Button from "./Button.astro";
+import Icon from "./Icon.astro";
+
+interface Props {
+	id: string;
+	title: string;
+	description?: string;
+	size?: "sm" | "md";
+	/** Adds a "Cancel" button (`returnValue` "cancel"). It gets initial focus, the least destructive choice. */
+	cancel?: boolean;
+	locale?: Locale;
+}
+
+const { id, title, description, size = "md", cancel = false, locale = resolveLocale(Astro.currentLocale) } =
+	Astro.props;
+const t = getMessages(locale).dialog;
+const titleId = `${id}-title`;
+const descriptionId = description ? `${id}-description` : undefined;
+const hasActions = cancel || Astro.slots.has("actions");
+---
+
+<dialog
+	id={id}
+	class:list={["dialog", size]}
+	closedby="any"
+	aria-labelledby={titleId}
+	aria-describedby={descriptionId}
+	data-dialog
+>
+	<div class="panel">
+		<div class="header">
+			<div class="heading">
+				<h2 id={titleId}>{title}</h2>
+				{description && <p id={descriptionId} class="text-muted">{description}</p>}
+			</div>
+			<button type="button" class="close" commandfor={id} command="close" aria-label={t.close}>
+				<Icon name="close" size={20} />
+			</button>
+		</div>
+		<div class="body stack">
+			<slot />
+		</div>
+		{
+			hasActions && (
+				<form method="dialog" class="cluster actions">
+					{cancel && (
+						<Button type="submit" value="cancel" variant="secondary" autofocus>
+							{t.cancel}
+						</Button>
+					)}
+					<slot name="actions" />
+				</form>
+			)
+		}
+	</div>
+</dialog>
+
+<script>
+	type CommandEvent = Event & { command: string; source: Element | null };
+
+	const dialogs = document.querySelectorAll<HTMLDialogElement>("dialog[data-dialog]");
+	const returnFocusTo = new WeakMap<HTMLDialogElement, HTMLElement>();
+
+	// One dialog at a time: before a dialog opens, close the open one and keep
+	// the focus-return target of the first dialog in the sequence.
+	function beforeOpen(dialog: HTMLDialogElement, source: Element | null) {
+		const current = document.querySelector<HTMLDialogElement>("dialog[data-dialog][open]");
+		const origin = (current && returnFocusTo.get(current)) ?? (source instanceof HTMLElement ? source : null);
+
+		if (current && current !== dialog) {
+			returnFocusTo.delete(current);
+			current.close();
+		}
+		if (origin) returnFocusTo.set(dialog, origin);
+	}
+
+	dialogs.forEach((dialog) => {
+		// Fired by Invoker Commands before the dialog opens.
+		dialog.addEventListener("command", (event) => {
+			const { command, source } = event as CommandEvent;
+			if (command === "show-modal") beforeOpen(dialog, source);
+		});
+
+		dialog.addEventListener("close", () => {
+			const origin = returnFocusTo.get(dialog);
+			returnFocusTo.delete(dialog);
+			if (origin?.isConnected) origin.focus();
+		});
+	});
+
+	// Fallback for browsers without Invoker Commands (before Safari 26.2, Firefox 144).
+	if (!("commandForElement" in HTMLButtonElement.prototype)) {
+		document.addEventListener("click", (event) => {
+			const button = event.target instanceof Element ? event.target.closest("button[commandfor]") : null;
+			if (!button) return;
+			const dialog = document.getElementById(button.getAttribute("commandfor") ?? "");
+			if (!(dialog instanceof HTMLDialogElement)) return;
+
+			const command = button.getAttribute("command");
+			if (command === "show-modal" && !dialog.open) {
+				beforeOpen(dialog, button);
+				dialog.showModal();
+			} else if (command === "close") {
+				dialog.close();
+			}
+		});
+	}
+
+	// Fallback for browsers without `closedby` (Safari): close on a backdrop
+	// click, but only when the press also started on the backdrop, so a text
+	// selection dragged outside the panel does not close the dialog.
+	if (!("closedBy" in HTMLDialogElement.prototype)) {
+		let pressStartedOnBackdrop = false;
+		document.addEventListener("pointerdown", (event) => {
+			pressStartedOnBackdrop = event.target instanceof HTMLDialogElement;
+		});
+		dialogs.forEach((dialog) => {
+			dialog.addEventListener("click", (event) => {
+				if (pressStartedOnBackdrop && event.target === dialog) dialog.close();
+			});
+		});
+	}
+
+	if (import.meta.env.DEV) {
+		document.querySelectorAll("dialog dialog").forEach((nested) => {
+			console.error("Nested <dialog> found. Dialogs must not be stacked; see design-docs/20.", nested);
+		});
+	}
+</script>
+
+<style>
+	.dialog {
+		width: min(100% - 2rem, 36rem);
+		max-height: min(100dvh - 2rem, 44rem);
+		padding: 0;
+		overflow: hidden;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-lg);
+		color: var(--color-text);
+		background: var(--color-surface);
+		box-shadow: 0 1.5rem 3rem rgb(0 0 0 / 25%);
+	}
+
+	.sm {
+		width: min(100% - 2rem, 26rem);
+	}
+
+	.dialog::backdrop {
+		background: rgb(20 22 19 / 55%);
+	}
+
+	/* Header and actions stay put; the body row takes the remaining height and scrolls. */
+	.panel {
+		display: grid;
+		grid-template-rows: auto minmax(0, 1fr) auto;
+		max-height: inherit;
+	}
+
+	.header {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: clamp(1.25rem, 4vw, 1.75rem) clamp(1.25rem, 4vw, 1.75rem) 0.75rem;
+	}
+
+	.heading {
+		display: grid;
+		gap: 0.35rem;
+	}
+
+	.heading > * {
+		margin: 0;
+	}
+
+	h2 {
+		font-size: 1.25rem;
+	}
+
+	.close {
+		display: grid;
+		flex: none;
+		place-items: center;
+		width: 2.25rem;
+		height: 2.25rem;
+		margin: -0.35rem -0.35rem 0 0;
+		padding: 0;
+		border: 0;
+		border-radius: 999px;
+		color: var(--color-text-muted);
+		background: transparent;
+		cursor: pointer;
+	}
+
+	.close:hover {
+		color: var(--color-text);
+		background: var(--color-canvas);
+	}
+
+	/*
+	 * Scroll shadows: the two `local` gradients cover the shadows while the
+	 * content is scrolled to that edge, so a shadow only shows when there is
+	 * more content above or below.
+	 */
+	.body {
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		padding: 0.25rem clamp(1.25rem, 4vw, 1.75rem);
+		background:
+			linear-gradient(var(--color-surface) 30%, transparent) top / 100% 2.5rem no-repeat local,
+			linear-gradient(transparent, var(--color-surface) 70%) bottom / 100% 2.5rem no-repeat local,
+			radial-gradient(farthest-side at 50% 0, var(--dialog-scroll-shadow), transparent) top / 100% 0.75rem no-repeat,
+			radial-gradient(farthest-side at 50% 100%, var(--dialog-scroll-shadow), transparent) bottom / 100% 0.75rem
+				no-repeat,
+			var(--color-surface);
+		--dialog-scroll-shadow: light-dark(rgb(0 0 0 / 14%), rgb(0 0 0 / 55%));
+	}
+
+	.actions {
+		--cluster-gap: 0.5rem;
+		justify-content: flex-end;
+		padding: 1rem clamp(1.25rem, 4vw, 1.75rem) clamp(1.25rem, 4vw, 1.5rem);
+	}
+
+	/* No page scrolling behind an open modal dialog. */
+	:global(html:has(dialog[data-dialog]:modal)) {
+		overflow: hidden;
+	}
+
+	/* Open and close transitions; `display` and `overlay` keep the dialog in the top layer while it fades out. */
+	@media (prefers-reduced-motion: no-preference) {
+		.dialog,
+		.dialog::backdrop {
+			transition:
+				opacity 160ms ease-out,
+				transform 160ms ease-out,
+				display 160ms allow-discrete,
+				overlay 160ms allow-discrete;
+		}
+
+		.dialog:not([open]) {
+			opacity: 0;
+			transform: translateY(0.5rem) scale(0.98);
+		}
+
+		.dialog:not([open])::backdrop {
+			opacity: 0;
+		}
+
+		@starting-style {
+			.dialog[open] {
+				opacity: 0;
+				transform: translateY(0.5rem) scale(0.98);
+			}
+
+			.dialog[open]::backdrop {
+				opacity: 0;
+			}
+		}
+	}
+</style>

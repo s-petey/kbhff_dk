@@ -2,18 +2,19 @@
 import type { HTMLAttributes } from "astro/types";
 
 /**
- * A link styled as a button when `href` is set, otherwise a real
- * `<button type="button">`. Other attributes (aria-*, data-*) pass through.
+ * A link styled as a button when `href` is set, otherwise a real `<button>`
+ * (`type="button"` unless `type` is given, e.g. `submit` in a dialog form).
+ * Other attributes (aria-*, data-*, commandfor/command) pass through.
  * `aria-pressed="true"` or `aria-current` shows the selected state.
  */
-interface Props extends Omit<HTMLAttributes<"button">, "class" | "type"> {
+interface Props extends Omit<HTMLAttributes<"button">, "class"> {
 	href?: string;
 	/** `warning` for caution (amber), `danger` for destructive or error actions (red). */
 	variant?: "primary" | "secondary" | "warning" | "danger";
 	size?: "md" | "sm";
 }
 
-const { href, variant = "primary", size = "md", ...attrs } = Astro.props;
+const { href, variant = "primary", size = "md", type = "button", ...attrs } = Astro.props;
 const className = ["button", variant, size];
 ---
 
@@ -23,7 +24,7 @@ const className = ["button", variant, size];
 			<slot />
 		</a>
 	) : (
-		<button class:list={className} type="button" {...attrs}>
+		<button class:list={className} type={type} {...attrs}>
 			<slot />
 		</button>
 	)

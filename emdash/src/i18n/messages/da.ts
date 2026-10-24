@@ -45,6 +45,10 @@ const da: Messages = {
 		empty: "Ingen spørgsmål i denne kategori endnu.", // REVIEW: legacy faq/list.php used "Ingen spørgsmål og svar"
 		openAnswer: "Åbn svaret", // REVIEW
 	},
+	dialog: {
+		close: "Luk", // legacy: www/js/lib/desktop/types/m-user_profile.js
+		cancel: "Annuller", // legacy: signup/signup.php
+	},
 };
 
 export default da;

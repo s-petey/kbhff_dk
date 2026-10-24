@@ -179,6 +179,42 @@ risk is the starter's structural selectors in `theme.css` (`main > ul`,
 `main > article`, …), which will be removed as the real page templates are
 built; revisit layers if global styles grow.
 
+## Dialogs
+
+**Principle: one dialog at a time. Dialogs are never stacked.**
+
+- Opening a dialog while another is open closes the open one first. A dialog
+  may lead to another (e.g. "Continue to confirmation"), but it *replaces*
+  the current one; it never opens on top of it.
+- Never place a `Dialog` inside another `Dialog` in markup. In development the
+  component logs an error if it finds a nested `<dialog>`.
+- If a flow needs more than one step, change the content of the one dialog or
+  move the flow to its own page. Don't chain dialogs as a wizard.
+- Use a dialog only for short, focused tasks that must be finished or
+  dismissed before continuing: a confirmation, a short notice. Content
+  people need to read, compare or link to belongs on a page.
+
+Why: stacked modals break focus management (where does focus return?),
+confuse screen-reader users about which context they are in, and on small
+screens leave no visible way back. The native `<dialog>` element allows
+stacking in the top layer, so the rule is enforced by the component, not by
+the browser.
+
+`Dialog` (`src/components/kbhff/Dialog.astro`) implements this:
+
+| Behaviour | How | Support / fallback |
+| --- | --- | --- |
+| Modal, focus trapped, page inert | Native `<dialog>` + `showModal()` | All browsers |
+| Open / close | Invoker Commands: `<Button commandfor="id" command="show-modal">` and `command="close"`; no caller JavaScript | Baseline Dec 2025; the component includes a click fallback for older browsers |
+| Light dismiss | `closedby="any"`: Escape or a click outside closes | Chrome 134, Firefox 141; the component falls back to its own backdrop-click handling in Safari, counting only presses that start on the backdrop |
+| Results | Buttons in the `actions` slot use `type="submit" value="…"` inside `<form method="dialog">`; read `dialog.returnValue` on `close` | All browsers |
+| One at a time | The `command` event (or the fallback) closes any open dialog before the next opens | — |
+| Focus | Initial focus: `autofocus` on Cancel for confirmations (least destructive), otherwise the first focusable element. On close, focus returns to the element that opened the *first* dialog, even after a replacement | — |
+| Accessible name | `title` → `aria-labelledby`; optional `description` → `aria-describedby`; translated close label | — |
+| Layout | Grid rows `auto minmax(0, 1fr) auto`: header and actions stay in view, only the body scrolls (scroll shadows show more content). Height capped with `dvh` for mobile browser bars | — |
+| Page scroll | Locked while a modal is open (`html:has(dialog:modal)`); `scrollbar-gutter: stable` prevents a layout shift | — |
+| Motion | Fade/scale on open **and** close via `@starting-style` and `transition-behavior: allow-discrete`, only with `prefers-reduced-motion: no-preference` | Close animation needs `overlay` support (Chromium); elsewhere the dialog closes without fading |
+
 ## Interface translations (i18n)
 
 The site must be translatable. Following the research note, **EmDash owns
@@ -225,6 +261,7 @@ through `src/utils/legacy-app.ts` (`PUBLIC_LEGACY_APP_URL`, default
 | `Steps` | Home "Nemt at komme i gang" | `heading`, `steps[]` (`title`, `description`, `href`, `icon`) | `steps` block type on pages | In styleguide |
 | `DepartmentCard` | `/afdelinger` list | `name`, `href`, address fields, `email`, `openingHours`, `status`, `statusNote`, `locale` | Departments (source of truth undecided) | In styleguide |
 | `FaqGroup` | `/faq` grouped list | `title`, `questions[]` (`question`, `href`, `answer`), `locale` | `faq` collection | In styleguide |
+| `Dialog` | Legacy JS overlays (e.g. profile "Luk" button) | `id`, `title`, `description`, `size`, `cancel`, `locale`, default and `actions` slots | — | In styleguide; see [Dialogs](#dialogs) |
 
 The Astro site cannot read the PHP session, so `ShortcutsBox` does not detect
 whether a visitor is logged in; the caller chooses `audience`.
@@ -265,8 +302,9 @@ build. Not yet verified: access with a real admin session.
   sample content (all invented examples).
 - Theme switch (System / Light / Dark), remembered per browser.
 - Sections: colours (scale and semantic tokens), layout primitives,
-  typography, buttons (primary, secondary, warning, danger), card tones, and
-  every component with its main variants and empty states.
+  typography, buttons (primary, secondary, warning, danger), card tones,
+  dialogs (including a demo of the one-at-a-time rule), and every component
+  with its main variants and empty states.
 
 ### Structure
 
