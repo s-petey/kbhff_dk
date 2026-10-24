@@ -7,8 +7,8 @@ import { defaultLocale, type Locale } from "./locales";
  * - CMS pages: EmDash. Link with `/${entry.id}` (EmDash includes the locale
  *   prefix); served by src/pages/[...slug].astro.
  * - News: ours, with a translated path and translated filter parameters:
- *     /nyheder, /nyheder/{slug}, /nyheder?kategori=…&tag=…
- *     /en/news, /en/news/{slug}, /en/news?category=…&tag=…
+ *     /nyheder, /nyheder/{slug}, /nyheder?q=…&kategori=…&tag=…
+ *     /en/news, /en/news/{slug}, /en/news?search=…&category=…&tag=…
  *
  * Plain functions with no Astro imports, so routes, views and the news sitemap
  * share them. The default locale has no prefix; other locales get `/{locale}`.
@@ -19,14 +19,19 @@ import { defaultLocale, type Locale } from "./locales";
  */
 export const newsSegment: Record<Locale, string> = { da: "nyheder", en: "news" };
 
-/** Query parameter names for the news filters, per language. */
+/** Query parameter names for the news search and filters, per language. */
 export const newsFilterParams = {
+	search: { da: "q", en: "search" },
 	category: { da: "kategori", en: "category" },
 	tag: { da: "tag", en: "tag" },
 } as const satisfies Record<string, Record<Locale, string>>;
 
 export type NewsFilter = keyof typeof newsFilterParams;
 export type NewsFilters = Partial<Record<NewsFilter, string>>;
+
+/** The filters that are taxonomies (EmDash taxonomy names); `search` is free text. */
+export const newsTaxonomies = ["category", "tag"] as const satisfies NewsFilter[];
+export type NewsTaxonomy = (typeof newsTaxonomies)[number];
 
 export interface LanguageLinkTarget {
 	locale: Locale;
@@ -66,7 +71,7 @@ export function newsItemPath(slug: string, locale: Locale): string {
 export function readNewsFilters(searchParams: URLSearchParams, locale: Locale): NewsFilters {
 	const filters: NewsFilters = {};
 	for (const filter of Object.keys(newsFilterParams) as NewsFilter[]) {
-		const value = searchParams.get(newsFilterParams[filter][locale]);
+		const value = searchParams.get(newsFilterParams[filter][locale])?.trim();
 		if (value) filters[filter] = value;
 	}
 	return filters;

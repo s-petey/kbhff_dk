@@ -17,7 +17,7 @@ Danish URLs have no prefix; English URLs are prefixed with `/en`.
 |---|---|---|
 | Home | `/` | `/en` |
 | News list | `/nyheder` | `/en/news` |
-| News list, filtered | `/nyheder?kategori=:slug&tag=:slug` | `/en/news?category=:slug&tag=:slug` |
+| News list, searched and filtered | `/nyheder?q=:text&kategori=:slug&tag=:slug` | `/en/news?search=:text&category=:slug&tag=:slug` |
 | News item | `/nyheder/:slug` | `/en/news/:slug` |
 | CMS page | `/:slug` | `/en/:slug` |
 | 404 | fallback (language from the URL) | |

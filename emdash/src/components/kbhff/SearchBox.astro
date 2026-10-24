@@ -1,0 +1,69 @@
+---
+/**
+ * Search box: a plain GET form to the news list in the page's language
+ * (`/nyheder?q=…`, `/en/news?search=…`), which shows the results. Works
+ * without JavaScript.
+ *
+ * In the site header. On the news list, `filters` pre-fills the search text and
+ * keeps the active category/tag filters as hidden fields, so a new search stays
+ * within them.
+ */
+import { getMessages, resolveLocale, type Locale } from "../../i18n";
+import { newsFilterParams, newsListPath, newsTaxonomies, type NewsFilters } from "../../i18n/routes";
+import Button from "./Button.astro";
+import Icon from "./Icon.astro";
+
+interface Props {
+	locale?: Locale;
+	filters?: NewsFilters;
+}
+
+const { locale = resolveLocale(Astro.currentLocale), filters = {} } = Astro.props;
+const t = getMessages(locale).search;
+---
+
+<form class="search-box" role="search" action={newsListPath(locale)} method="get">
+	{
+		newsTaxonomies.map(
+			(taxonomy) =>
+				filters[taxonomy] && <input type="hidden" name={newsFilterParams[taxonomy][locale]} value={filters[taxonomy]} />,
+		)
+	}
+	<input
+		type="search"
+		name={newsFilterParams.search[locale]}
+		value={filters.search}
+		placeholder={t.placeholder}
+		aria-label={t.label}
+		enterkeyhint="search"
+	/>
+	<Button type="submit" variant="secondary" aria-label={t.submit}>
+		<Icon name="search" size={20} />
+	</Button>
+</form>
+
+<style>
+	.search-box {
+		display: flex;
+		gap: 0.5rem;
+	}
+
+	input {
+		flex: 1 1 auto;
+		min-width: 0;
+		min-height: 2.75rem;
+		padding: 0.55rem 0.8rem;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-sm);
+		color: var(--color-text);
+		background: var(--color-canvas);
+		font: inherit;
+	}
+
+	/* The button is square: icon only, named by aria-label. */
+	.search-box :global(.button) {
+		flex: none;
+		padding-inline: 0;
+		width: 2.75rem;
+	}
+</style>

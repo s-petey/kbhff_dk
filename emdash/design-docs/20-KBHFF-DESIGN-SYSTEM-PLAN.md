@@ -178,6 +178,7 @@ Narrow:          [Brand]                                  🌐 English  [☰ Men
 | Part | Decision | Why |
 | --- | --- | --- |
 | Language link | Always visible in the header bar, on every screen size; never inside the menu. One link to the other language, named in that language ("English" / "Dansk"), with `lang` and `hreflang`; no flags. | People who cannot read the current language must be able to find it (USWDS two-language pattern). Flags stand for countries, not languages. |
+| Search | Our `SearchBox`: a plain GET form (`role="search"`) that opens the news list in the page's language with the search filled in (`/nyheder?q=…`, `/en/news?search=…`). Replaces EmDash's `LiveSearch` (2026-10-24). | Works without JavaScript; our styling and translated text; one search behaviour everywhere. CMS pages are not searchable for now. |
 | Theme | Native `<select>` inside the menu. | Low-priority preference; compact; accessible. |
 | Menu button | Disclosure: `<button aria-expanded aria-controls>` labelled "Menu"; the panel opens below the bar. Escape closes it and returns focus to the button. No focus trap. | A menu is not a dialog, so the one-dialog rule never applies. |
 | One markup | Navigation, search and theme render once: inline on wide screens, in the panel on narrow screens (CSS grid areas). | No duplicated links or controls. |

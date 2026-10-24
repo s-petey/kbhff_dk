@@ -158,28 +158,6 @@
 			]
 		}
 	],
-	"widgetAreas": [
-		{
-			"name": "sidebar",
-			"label": "Sidebar",
-			"description": "Sidebar widget area",
-			"widgets": [
-				{
-					"type": "component",
-					"componentId": "core:search",
-					"title": "Search"
-				},
-				{
-					"type": "component",
-					"componentId": "core:recent-posts",
-					"title": "Recent Posts",
-					"props": {
-						"count": 5
-					}
-				}
-			]
-		}
-	],
 	"content": {
 		"pages": [
 			{
@@ -333,6 +311,61 @@
 				"taxonomies": {
 					"category": ["general"],
 					"tag": ["example"]
+				}
+			},
+			{
+				"id": "ugens-pose",
+				"slug": "ugens-pose",
+				"status": "published",
+				"locale": "da",
+				"data": {
+					"title": "Ugens pose",
+					"excerpt": "Endnu en eksempelnyhed, så listen og \"Seneste nyheder\" har noget at vise.",
+					"content": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"_key": "k0",
+							"children": [
+								{
+									"_type": "span",
+									"_key": "k1",
+									"text": "Eksempelnyhed om ugens grøntsagspose. Erstat den med rigtigt indhold."
+								}
+							]
+						}
+					]
+				},
+				"taxonomies": {
+					"category": ["opdateringer"]
+				}
+			},
+			{
+				"id": "weekly-bag",
+				"slug": "weekly-bag",
+				"status": "published",
+				"locale": "en",
+				"translationOf": "ugens-pose",
+				"data": {
+					"title": "This week's bag",
+					"excerpt": "Another example news item, so the list and \"Latest news\" have something to show.",
+					"content": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"_key": "k0",
+							"children": [
+								{
+									"_type": "span",
+									"_key": "k1",
+									"text": "Example news item about this week's vegetable bag. Replace it with real content."
+								}
+							]
+						}
+					]
+				},
+				"taxonomies": {
+					"category": ["updates"]
 				}
 			}
 		]

@@ -1,7 +1,8 @@
 ---
 /**
- * Site header: brand, main navigation, search, theme choice and the language
- * link. See "Site header" in design-docs/20-KBHFF-DESIGN-SYSTEM-PLAN.md.
+ * Site header: brand, main navigation, search (submits to the news list),
+ * theme choice and the language link. See "Site header" in
+ * design-docs/20-KBHFF-DESIGN-SYSTEM-PLAN.md.
  *
  * - Wide screens (≥ 64rem): everything inline.
  * - Narrow screens: brand, language link and a "Menu" button; the menu panel
@@ -14,12 +15,12 @@
  * DOM order is brand → menu button → menu → language link, so focus moves
  * from the button straight into the opened menu.
  */
-import LiveSearch from "emdash/ui/search";
 import { getMessages, type Locale } from "../../i18n";
-import { homePath, type LanguageLinkTarget } from "../../i18n/routes";
+import { homePath, type LanguageLinkTarget, type NewsFilters } from "../../i18n/routes";
 import Button from "./Button.astro";
 import Icon from "./Icon.astro";
 import LanguageLink from "./LanguageLink.astro";
+import SearchBox from "./SearchBox.astro";
 import ThemeSelect from "./ThemeSelect.astro";
 
 interface MenuLink {
@@ -35,9 +36,11 @@ interface Props {
 	locale: Locale;
 	/** Where the language link points; set by the page through Base. */
 	languageLink: LanguageLinkTarget;
+	/** News list only: the current search and filters for the search box. */
+	searchFilters?: NewsFilters;
 }
 
-const { siteTitle, siteLogo, links, locale, languageLink } = Astro.props;
+const { siteTitle, siteLogo, links, locale, languageLink, searchFilters } = Astro.props;
 const t = getMessages(locale);
 // Menu URLs may or may not end in "/" ("/en/" vs "/en"); compare without it.
 const withoutTrailingSlash = (path: string) => (path.length > 1 ? path.replace(/\/$/, "") : path);
@@ -76,7 +79,7 @@ const currentPath = withoutTrailingSlash(Astro.url.pathname);
 					}
 				</ul>
 			</nav>
-			<LiveSearch placeholder={t.common.search} collections={["posts", "pages"]} locale={locale} />
+			<SearchBox locale={locale} filters={searchFilters} />
 			<ThemeSelect locale={locale} />
 		</div>
 
@@ -188,22 +191,6 @@ const currentPath = withoutTrailingSlash(Astro.url.pathname);
 		color: var(--color-brand);
 	}
 
-	.menu :global(.emdash-live-search) {
-		display: block;
-		width: 100%;
-	}
-
-	.menu :global(.emdash-live-search-input) {
-		width: 100%;
-		min-height: 2.75rem;
-		padding: 0.55rem 0.8rem;
-		border: 1px solid var(--color-border);
-		border-radius: var(--radius-sm);
-		color: var(--color-text);
-		background: var(--color-canvas);
-		font: inherit;
-	}
-
 	@media (width < 64rem) {
 		.site-header[data-menu="closed"] .menu {
 			display: none;
@@ -247,8 +234,8 @@ const currentPath = withoutTrailingSlash(Astro.url.pathname);
 			font-size: 0.95rem;
 		}
 
-		.menu :global(.emdash-live-search) {
-			width: 14rem;
+		.menu :global(.search-box) {
+			width: 16rem;
 		}
 	}
 </style>

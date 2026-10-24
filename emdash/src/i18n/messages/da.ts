@@ -9,8 +9,10 @@ import type { Messages } from "./en";
  *     Danish speaker before public launch. Remove the marker once approved.
  */
 const da: Messages = {
-	common: {
-		search: "Søg…", // legacy: shop/index.php ("Søg"), ellipsis added for the placeholder
+	search: {
+		label: "Søg i nyheder", // REVIEW
+		placeholder: "Søg…", // legacy: shop/index.php ("Søg"), ellipsis added for the placeholder
+		submit: "Søg", // legacy: shop/index.php
 	},
 	header: {
 		menu: "Menu", // REVIEW

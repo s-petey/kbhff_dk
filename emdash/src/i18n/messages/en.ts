@@ -4,8 +4,10 @@
  * Placeholders use `{name}` and are filled by `format()`.
  */
 const en = {
-	common: {
-		search: "Search…",
+	search: {
+		label: "Search news",
+		placeholder: "Search…",
+		submit: "Search",
 	},
 	header: {
 		menu: "Menu",

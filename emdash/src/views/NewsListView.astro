@@ -4,24 +4,26 @@
  *
  * - Title and intro come from the CMS page whose slug is the news path segment
  *   (`nyheder` in Danish, `news` in English; linked as translations).
- * - Filter by category and/or tag with translated query parameters:
- *   `/nyheder?kategori=…&tag=…`, `/en/news?category=…&tag=…`. Values are the
- *   term slugs in the page's language; unknown values are ignored.
- * - The language link keeps the filters when every filter term has a
- *   translation (same translation group), otherwise it links to the plain list.
+ * - Search (EmDash full-text search in the page's language) and filter by
+ *   category and/or tag, with translated query parameters:
+ *   `/nyheder?q=…&kategori=…&tag=…`, `/en/news?search=…&category=…&tag=…`.
+ *   Term values are the slugs in the page's language; unknown ones are ignored.
+ *   Matches are listed by date like the rest of the list; at most the 200 best.
+ * - The language link keeps the search and the filters when every filter term
+ *   has a translation (same translation group), otherwise only the search.
  */
-import { getEmDashCollection, getEmDashEntry, getTaxonomyTermsWithCacheHint, getTermsForEntries } from "emdash";
+import { getEmDashCollection, getEmDashEntry, getTaxonomyTermsWithCacheHint, getTermsForEntries, search } from "emdash";
 import type { TaxonomyTerm } from "emdash";
 import { PortableText } from "emdash/ui";
 import Button from "../components/kbhff/Button.astro";
 import { getMessages, otherLocale, resolveLocale } from "../i18n";
 import {
-	newsFilterParams,
 	newsListPath,
 	newsSegment,
+	newsTaxonomies,
 	readNewsFilters,
-	type NewsFilter,
 	type NewsFilters,
+	type NewsTaxonomy,
 } from "../i18n/routes";
 import Base from "../layouts/Base.astro";
 import PostGrid from "./PostGrid.astro";
@@ -30,45 +32,53 @@ const locale = resolveLocale(Astro.currentLocale);
 const target = otherLocale(locale);
 const t = getMessages(locale).news;
 const cursor = Astro.url.searchParams.get("cursor") || undefined;
-const taxonomies = Object.keys(newsFilterParams) as NewsFilter[];
-const groupLabels: Record<NewsFilter, string> = { category: t.categories, tag: t.tags };
+const groupLabels: Record<NewsTaxonomy, string> = { category: t.categories, tag: t.tags };
 
 const [introResult, ...termResults] = await Promise.all([
 	getEmDashEntry("pages", newsSegment[locale], { locale }),
-	...taxonomies.map((taxonomy) => getTaxonomyTermsWithCacheHint(taxonomy, { locale })),
+	...newsTaxonomies.map((taxonomy) => getTaxonomyTermsWithCacheHint(taxonomy, { locale })),
 ]);
 const intro = introResult.entry;
-const terms = Object.fromEntries(taxonomies.map((taxonomy, index) => [taxonomy, termResults[index]!.data])) as Record<
-	NewsFilter,
-	TaxonomyTerm[]
->;
+const terms = Object.fromEntries(
+	newsTaxonomies.map((taxonomy, index) => [taxonomy, termResults[index]!.data]),
+) as Record<NewsTaxonomy, TaxonomyTerm[]>;
 
-// Keep only filters that name an existing term.
-const filters: NewsFilters = {};
-const activeTerms: [NewsFilter, TaxonomyTerm][] = [];
-for (const [taxonomy, slug] of Object.entries(readNewsFilters(Astro.url.searchParams, locale)) as [NewsFilter, string][]) {
-	const term = terms[taxonomy].find((item) => item.slug === slug);
+// Keep the search text, and only the filters that name an existing term.
+const requested = readNewsFilters(Astro.url.searchParams, locale);
+const filters: NewsFilters = { search: requested.search };
+const activeTerms: [NewsTaxonomy, TaxonomyTerm][] = [];
+for (const taxonomy of newsTaxonomies) {
+	const term = terms[taxonomy].find((item) => item.slug === requested[taxonomy]);
 	if (term) {
-		filters[taxonomy] = slug;
+		filters[taxonomy] = term.slug;
 		activeTerms.push([taxonomy, term]);
 	}
 }
 
+// Search returns the matching post ids; the query below lists those posts.
+// An empty id list would not filter at all, so no matches skips the query.
+const matchIds = filters.search
+	? (await search(filters.search, { collections: ["posts"], locale, limit: 200 })).items.map((item) => item.id)
+	: undefined;
+const where: Record<string, string | string[]> = Object.fromEntries(activeTerms.map(([taxonomy, term]) => [taxonomy, term.slug]));
+if (matchIds) where.id = matchIds;
 const {
 	entries: posts,
 	cacheHint,
 	nextCursor,
-} = await getEmDashCollection("posts", {
-	locale,
-	where: filters,
-	orderBy: { published_at: "desc" },
-	limit: 20,
-	cursor,
-});
+} = matchIds?.length === 0
+	? { entries: [], cacheHint: undefined, nextCursor: undefined }
+	: await getEmDashCollection("posts", {
+			locale,
+			where,
+			orderBy: { published_at: "desc" },
+			limit: 20,
+			cursor,
+		});
 if (Astro.cache?.enabled) {
 	Astro.cache.set(introResult.cacheHint);
 	for (const result of termResults) Astro.cache.set(result.cacheHint);
-	Astro.cache.set(cacheHint);
+	if (cacheHint) Astro.cache.set(cacheHint);
 }
 
 // One batched query for every post's tags instead of one per post.
@@ -78,30 +88,38 @@ const tagsByEntry = await getTermsForEntries(
 	"tag",
 );
 
-// The same filters in the other language when every filter term is translated,
-// otherwise the plain list. Only filtered views need the other language's terms.
-let targetFilters: NewsFilters = {};
-for (const [taxonomy, term] of activeTerms) {
-	const other = await getTaxonomyTermsWithCacheHint(taxonomy, { locale: target, includeCounts: false });
-	if (Astro.cache?.enabled) Astro.cache.set(other.cacheHint);
-	const match = term.translationGroup && other.data.find((item) => item.translationGroup === term.translationGroup);
-	if (!match) {
-		targetFilters = {};
-		break;
-	}
-	targetFilters[taxonomy] = match.slug;
-}
+// The same search and filters in the other language when every filter term is
+// translated, otherwise only the search. Only filtered views need the other
+// language's terms.
+const translatedTerms = await Promise.all(
+	activeTerms.map(async ([taxonomy, term]) => {
+		const other = await getTaxonomyTermsWithCacheHint(taxonomy, { locale: target, includeCounts: false });
+		if (Astro.cache?.enabled) Astro.cache.set(other.cacheHint);
+		const match = term.translationGroup
+			? other.data.find((item) => item.translationGroup === term.translationGroup)
+			: undefined;
+		return [taxonomy, match?.slug] as const;
+	}),
+);
+const targetFilters: NewsFilters = translatedTerms.every(([, slug]) => slug)
+	? { search: filters.search, ...Object.fromEntries(translatedTerms) }
+	: { search: filters.search };
 
 const title = intro?.data.title ?? t.title;
-const filterGroups = taxonomies.map((taxonomy) => ({
+const filterGroups = newsTaxonomies.map((taxonomy) => ({
 	taxonomy,
 	label: groupLabels[taxonomy],
 	terms: terms[taxonomy].filter((term) => (term.count ?? 0) > 0),
 }));
-const filtered = activeTerms.length > 0;
+const filtered = activeTerms.length > 0 || Boolean(filters.search);
 ---
 
-<Base title={title} locale={locale} languageLink={{ locale: target, href: newsListPath(target, targetFilters) }}>
+<Base
+	title={title}
+	locale={locale}
+	languageLink={{ locale: target, href: newsListPath(target, targetFilters) }}
+	searchFilters={filters}
+>
 	<div class="stack news">
 		<h1 {...intro?.edit.title}>{title}</h1>
 		{intro && <PortableText value={intro.data.content} />}

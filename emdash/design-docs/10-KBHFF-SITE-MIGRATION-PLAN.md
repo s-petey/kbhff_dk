@@ -266,15 +266,15 @@ add `"locale": "en"` to each entry and link each one to its Danish source with
   | --- | --- | --- | --- |
   | Home | `/` | `/en` | Route files |
   | News list (code route, intro from CMS pages `nyheder` / `news`) | `/nyheder` | `/en/news` | Translated segment, route files |
-  | News list filtered by category and/or tag | `/nyheder?kategori=…&tag=…` | `/en/news?category=…&tag=…` | Translated parameter names; values are the term slugs per language |
+  | News list searched and/or filtered by category and tag | `/nyheder?q=…&kategori=…&tag=…` | `/en/news?search=…&category=…&tag=…` | Translated parameter names; term values are the slugs per language |
   | Page (CMS, `urlPattern` `/{slug}`) | `/om` | `/en/about` | Catch-all route; the slug is translated per entry |
   | News item (CMS content, our route; `urlPattern` `/nyheder/{slug}`) | `/nyheder/velkommen` | `/en/news/welcome` | Translated segment, route files; the slug is translated per entry |
 
 - **Decided (2026-10-24): news URLs are ours; everything else is EmDash's.**
   Only the URL shape is custom; content and slugs stay in the CMS.
   - One pure table, `src/i18n/routes.ts`: path `nyheder` ↔ `news`, parameters
-    `kategori` ↔ `category`, `tag` ↔ `tag`, and the news URL functions used by
-    the routes, hreflang and the sitemap.
+    `q` ↔ `search`, `kategori` ↔ `category`, `tag` ↔ `tag`, and the news URL
+    functions used by the routes, hreflang and the sitemap.
   - EmDash builds `/en/nyheder/…` from the single posts `urlPattern` (admin
     preview, "View"); `src/pages/en/nyheder/[slug].astro` redirects those to
     `/en/news/…`, keeping the query (`?_preview`).
@@ -292,25 +292,34 @@ add `"locale": "en"` to each entry and link each one to its Danish source with
     was removed from the seed because it links to `/category/{slug}`.
 - Still open: whether English falls back to Danish content when a page has no
   translation (`fallback: { en: "da" }`). Start without a fallback.
-- **Open problem (2026-10-24): EmDash's built-in widgets are not
-  language-aware.** The news article page renders the CMS widget area
-  `sidebar` (`<WidgetArea name="sidebar" />` in `src/views/NewsArticleView.astro`;
-  contents managed in the admin under Widgets, seeded from `seed/seed.json`).
-  Its `core:recent-posts` widget (EmDash 1.3.1,
-  `emdash/src/components/widgets/RecentPosts.astro`):
-  - queries posts without `locale`, so English pages list Danish news;
-  - links to `/posts/{id}` unless a `urlTemplate` prop is set; that route does
-    not exist here (`urlTemplate: "/nyheder/:slug"` would fix Danish links
-    only; English would go through the `/en/nyheder` redirect);
-  - has one title for all languages, since widget areas are not per language.
-  The widget's props (count, thumbnails, date, `urlTemplate`) cannot fix the
-  language filter. Options: (A) remove the widget area and seed widgets until
-  the article sidebar is designed (legacy: shortcuts, newsletter, weekly bag),
-  then build it from our translated components; (B) our own "latest news"
-  list in `NewsArticleView`; (C) keep the CMS sidebar but allow only widgets
-  that work in both languages (Portable Text content; menu widgets need
-  checking, since `WidgetRenderer` calls `getMenu()` without a locale).
-  Recommended: A. Not yet decided.
+- **Decided (2026-10-24): no CMS widget areas for now; EmDash's built-in
+  widgets and search are not language-aware.** Found in EmDash 1.3.1:
+  - `core:recent-posts` (`emdash/src/components/widgets/RecentPosts.astro`)
+    queries posts without `locale` (English pages list Danish news), links to
+    `/posts/{id}` unless a `urlTemplate` prop is set, and has one title for
+    all languages (widget areas are not per language).
+  - `core:search` (`widgets/Search.astro`) submits to `/search`, which this
+    site does not have, with fixed English text.
+  - `LiveSearch` (`emdash/ui/search`) links results to `/{collection}/{slug}`
+    unless given a `routeMap`.
+  - `WidgetRenderer` calls `getMenu()` without a locale, so menu widgets
+    would need checking too.
+
+  So the article page has no widget area and the seed has no widget areas.
+  In place of "Recent Posts", the article page shows "Latest news" below the
+  article: the 3 newest other posts in the same language, as article cards
+  (`loadNewsItem.ts`).
+  Search is our `SearchBox` in the site header: a GET form to the news list,
+  which runs EmDash's `search()` in the page's language and lists the
+  matching posts with the category/tag filters (at most the 200 best
+  matches). On the news list the header box shows the current search. CMS pages are not searchable for now. When the article sidebar
+  is designed (legacy: shortcuts, newsletter, weekly bag), build it from our
+  translated components, in code.
+- **Decided (2026-10-24): search uses the `trigram` tokenizer** (matches
+  inside Danish compound words; no worse for English). EmDash 1.3.1 can only
+  set it through the admin API, not the seed or admin UI; see the task in
+  [30-TASK-SEARCH-TOKENIZER.md](./30-TASK-SEARCH-TOKENIZER.md). Until then the
+  site runs on the default `porter unicode61`.
 - **Implemented (2026-10-24)** in the EmDash app: Astro `i18n` config,
   a catch-all route for CMS pages, Danish and English news routes (thin
   wrappers around shared views in `src/views/`), locale-aware queries, menus
