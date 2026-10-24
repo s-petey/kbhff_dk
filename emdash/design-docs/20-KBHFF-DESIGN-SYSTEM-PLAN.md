@@ -136,7 +136,69 @@ Each semantic token is defined once, e.g.
 `--color-text: light-dark(#1d1f1c, #e7eae4)`. `:root` sets
 `color-scheme: light dark`, so the browser picks the value from the OS
 setting; `data-theme="light"` or `data-theme="dark"` on `<html>` forces a
-theme by setting `color-scheme` only. The styleguide's theme switch uses this.
+theme by setting `color-scheme` only. Following the OS needs no JavaScript.
+
+`ThemeSelect` (`src/components/kbhff/ThemeSelect.astro`) lets visitors
+choose System (default), Light or Dark with a labelled native `<select>`. It
+sits in the site header's menu (see [Site header](#site-header)), so every page
+that uses `Base.astro` has it, including the styleguide. A select was chosen
+over three buttons: it is compact, needs no popover, and is natively
+accessible on desktop and mobile; `color-scheme` makes the browser draw its
+dropdown in the active theme. The theme changes on `change`, which is not a
+change of context (WCAG 3.2.2). Labels come from the `theme` i18n namespace.
+Behaviour:
+
+- **Storage:** `localStorage` key `kbhff-theme`, value `light` or `dark`. The
+  key is removed for System, so "System" means no stored value and no
+  `data-theme` attribute. Every storage access is wrapped in try/catch.
+- **Why not a cookie:** pages are server-rendered and may be route-cached, so
+  the HTML must be identical for every visitor. A cookie would have to be read
+  on the server to render the right theme, which makes responses vary per
+  visitor and defeats caching.
+- **No flash of the wrong theme:** `ThemeScript.astro` is a tiny blocking
+  `<script is:inline>` in `<head>` (in `Base.astro`, before stylesheets and
+  `EmDashHead`). It reads the key and sets `data-theme` before first paint.
+- **`<meta name="color-scheme" content="light dark">`** in `Base.astro` lets the
+  browser colour its own UI (scrollbars, form controls, canvas before CSS
+  loads) to match. The inline script and the select set its content to
+  `light` or `dark` when a theme is forced, and back to `light dark` for System.
+- The server renders "System" as selected; the select's script sets the stored
+  value on load. Several selects on one page stay in sync.
+
+## Site header
+
+`SiteHeader` (`src/components/kbhff/SiteHeader.astro`, used by `Base.astro`):
+
+```
+Wide (≥ 64rem):  [Brand]  nav links …        [Søg…]  Tema [System ▾]   🌐 English
+Narrow:          [Brand]                                  🌐 English  [☰ Menu]
+                 └ menu panel: nav links · search · Tema [System ▾]
+```
+
+| Part | Decision | Why |
+| --- | --- | --- |
+| Language link | Always visible in the header bar, on every screen size; never inside the menu. One link to the other language, named in that language ("English" / "Dansk"), with `lang` and `hreflang`; no flags. | People who cannot read the current language must be able to find it (USWDS two-language pattern). Flags stand for countries, not languages. |
+| Theme | Native `<select>` inside the menu. | Low-priority preference; compact; accessible. |
+| Menu button | Disclosure: `<button aria-expanded aria-controls>` labelled "Menu"; the panel opens below the bar. Escape closes it and returns focus to the button. No focus trap. | A menu is not a dialog, so the one-dialog rule never applies. |
+| One markup | Navigation, search and theme render once: inline on wide screens, in the panel on narrow screens (CSS grid areas). | No duplicated links or controls. |
+| Focus order | DOM: brand → menu button → menu → language link, so focus goes from the button straight into the opened menu. On wide screens the visual order matches the DOM. | Meaningful focus order (WCAG 2.4.3). |
+| No JavaScript | The menu stays open and the button is hidden. | Navigation never becomes unreachable. |
+| Current page | Navigation links set `aria-current="page"`. | Screen readers announce the current page. |
+
+**Language link target: set by the page.** There is one language control on
+every page (the header's `LanguageLink`); each page decides where it points
+through `Base`'s `languageLink` prop (`{ locale, href }`):
+
+| Page | `languageLink` |
+| --- | --- |
+| Content pages (after i18n routing) | The same entry in the other language via EmDash `getTranslations()` (published only); the other language's home page when there is no translation |
+| Code-built routes (after i18n routing) | `getRelativeLocaleUrl()` for the same route |
+| Styleguide | Its own `?lang=` variant (chrome stays English; components and samples switch) |
+| Not set | The other language's home page (`/` or `/en/`, from `src/utils/locale-links.ts`) |
+
+**Temporary:** Astro i18n routing is not configured yet, so pages do not set
+`languageLink` and `/en/` does not exist yet. Once routing is configured,
+content pages set it as above and the locale is passed to `getMenu()`.
 
 `light-dark()` is Baseline 2024 (Chrome 123, Firefox 120, Safari 17.5). Older
 browsers ignore the tokens and fall back to browser default colours: readable
@@ -231,14 +293,18 @@ variants) and **the site owns interface strings**.
 
 Astro i18n routing is **not configured yet**, so `Astro.currentLocale` is
 undefined and components fall back to Danish unless a page passes `locale`.
-Configuring routing (Danish unprefixed, English prefix decision, fallback
-policy) is still open in the migration plan. To add a language: add its code to
+The URL structure is decided (see phase 1 of the migration plan): Danish
+(`da`, default) is unprefixed at `/om`; English (`en`) is prefixed at
+`/en/about`. EmDash's "do not prefix the default locale" applies to Danish
+only. The fallback policy is still open. Locale codes are language codes
+(`da`, not `dk`). To add a language: add its code to
 `locales`, add `messages/<code>.ts` typed as `Messages`, and register it in
 `src/i18n/index.ts`.
 
-Dev and admin pages default to English. The styleguide chrome is English and
-its `?lang=da|en` switch only changes the components' interface language and
-sample data.
+Dev and admin pages default to English. The styleguide chrome is English;
+the site header's language link switches it between `?lang=en` and
+`?lang=da`, which changes only the components' interface language and sample
+data.
 
 ## Components
 
@@ -262,6 +328,9 @@ through `src/utils/legacy-app.ts` (`PUBLIC_LEGACY_APP_URL`, default
 | `DepartmentCard` | `/afdelinger` list | `name`, `href`, address fields, `email`, `openingHours`, `status`, `statusNote`, `locale` | Departments (source of truth undecided) | In styleguide |
 | `FaqGroup` | `/faq` grouped list | `title`, `questions[]` (`question`, `href`, `answer`), `locale` | `faq` collection | In styleguide |
 | `Dialog` | Legacy JS overlays (e.g. profile "Luk" button) | `id`, `title`, `description`, `size`, `cancel`, `locale`, default and `actions` slots | — | In styleguide; see [Dialogs](#dialogs) |
+| `SiteHeader` | `www.header.php` navigation | `siteTitle`, `siteLogo`, `links`, `locale` | Site settings, `primary` menu | In `Base.astro`; see [Site header](#site-header) |
+| `ThemeSelect` | — (new) | `locale` | localStorage | In the site header |
+| `LanguageLink` | — (legacy had a separate `/english` page) | `locale` (target), `href` | `getTranslations()` once i18n routing is configured | In the site header; links to the other language's home page for now |
 
 The Astro site cannot read the PHP session, so `ShortcutsBox` does not detect
 whether a visitor is logged in; the caller chooses `audience`.
@@ -298,19 +367,33 @@ build. Not yet verified: access with a real admin session.
 
 ### Contents
 
-- Page chrome in English; `?lang=da|en` switches component language and the
-  sample content (all invented examples).
-- Theme switch (System / Light / Dark), remembered per browser.
+- Page chrome in English. The site header's language link (the same control
+  as on every page) switches component language and sample content via
+  `?lang=da|en`; the intro shows the current language. All sample content is
+  invented.
+- Light/dark preview through the site header's `ThemeSelect` (System /
+  Light / Dark), remembered per browser.
 - Sections: colours (scale and semantic tokens), layout primitives,
-  typography, buttons (primary, secondary, warning, danger), card tones,
-  dialogs (including a demo of the one-at-a-time rule), and every component
-  with its main variants and empty states.
+  typography, icons, buttons (variants, link vs button, selected states),
+  card tones, dialogs (including a demo of the one-at-a-time rule), site
+  header (`LanguageLink`, `ThemeSelect`; `SiteHeader` itself is the page's
+  own header), and every other component with its main variants and empty
+  states.
+- **Rule: every component in `src/components/kbhff/` is represented**, with
+  each variant and state it supports. Add or update the styleguide section in
+  the same change as the component.
+- **Samples never leave the page.** Every sample link points at its own
+  section's anchor. Components that build real URLs take an override for
+  this: `ShortcutsBox` has a `hrefs` prop (defaults point into the member
+  system). Forms are the exception: `NewsletterBox` posts to the live
+  Mailchimp list, so a small script in `index.astro` stops sample forms from
+  submitting; dialog forms (`method="dialog"`) still work.
 
 ### Structure
 
 ```
 src/pages/styleguide/
-├── index.astro              access check, intro, theme script, section list
+├── index.astro              access check, intro, section list
 ├── _components/Section.astro    section wrapper: anchor, heading, spacing
 └── _sections/*.astro        one file per section: markup + its sample content
 ```
@@ -352,8 +435,6 @@ through EmDash's "View on site".
 - [ ] **Configure Astro i18n routing** once the URL decision is made, so
       `Astro.currentLocale` drives component language; add a language switcher
       and translated EmDash menus.
-- [ ] **Public theme switch** (optional), using the existing `data-theme`
-      attribute; avoid a flash of the wrong theme by setting it before paint.
 - [ ] Verify `/styleguide` with a real admin session in a production build.
 - [ ] Use the components in `Base.astro` (header with logo, footer) and the
       existing page routes.

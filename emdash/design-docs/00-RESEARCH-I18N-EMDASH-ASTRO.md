@@ -29,6 +29,26 @@ EmDash requires the default locale to remain unprefixed. Use Astro's default
 `prefixDefaultLocale: true`. Prefixing the default locale breaks the EmDash
 admin routes mounted at `/_emdash/admin`.
 
+**What "do not prefix" means.** The rule applies to the **default locale
+only**. Every *other* locale **is** prefixed, automatically, by Astro's
+default routing; that is expected and required. The prefix is a path segment
+in front of the page path, never a suffix or query parameter.
+
+| Locale | Default? | URL | Note |
+| --- | --- | --- | --- |
+| Default (e.g. `da`) | Yes | `/om` | No prefix. `/da/om` would break the admin. |
+| Any other (e.g. `en`) | No | `/en/about` | Prefixed automatically. Not `/about/en` or `/about?lang=en`. |
+
+EmDash follows the same shape internally: an entry's Astro id is its slug for
+the default locale and `` `${locale}/${slug}` `` for other locales (`om`,
+`en/about`; see `entryIdForRow` in `emdash/src/loader.ts`). No routing option
+is needed to get this; Astro's defaults produce it.
+
+**Locale codes are language codes** (ISO 639-1 / BCP 47), not country codes:
+Danish is `da`, not `dk` (`dk` is Denmark's country code, as in `.dk`). The same
+codes are used for `<html lang>`, `hreflang` and `i18n.locales`; an invalid
+code such as `hreflang="dk"` is ignored by search engines.
+
 ```js
 i18n: {
   defaultLocale: "en",

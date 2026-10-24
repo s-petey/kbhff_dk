@@ -1,0 +1,43 @@
+---
+/**
+ * Link to the other language, written in that language ("English" on Danish
+ * pages, "Dansk" on English pages) with matching `lang` and `hreflang`, so
+ * screen readers pronounce it correctly. No flags: they stand for countries,
+ * not languages. Keep it visible in the header on every screen size; never
+ * hide it in a menu.
+ */
+import { localeNames, type Locale } from "../../i18n";
+import Icon from "./Icon.astro";
+
+interface Props {
+	/** The language the link leads to. */
+	locale: Locale;
+	href: string;
+}
+
+const { locale, href } = Astro.props;
+---
+
+<a class="language-link" href={href} hreflang={locale} lang={locale}>
+	<Icon name="globe" size={18} />
+	<span>{localeNames[locale]}</span>
+</a>
+
+<style>
+	.language-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		min-height: 2.25rem;
+		padding: 0.35rem 0.6rem;
+		border-radius: var(--radius-sm);
+		font-size: 0.95rem;
+		font-weight: 650;
+		text-decoration: none;
+		white-space: nowrap;
+	}
+
+	.language-link:hover {
+		background: var(--color-brand-soft);
+	}
+</style>

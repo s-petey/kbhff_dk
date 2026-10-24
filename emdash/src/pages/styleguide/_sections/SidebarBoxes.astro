@@ -9,20 +9,25 @@ interface Props {
 }
 
 const { locale } = Astro.props;
+const shortcutHrefs = { takeShift: "#sidebar", orderBag: "#sidebar", becomeMember: "#sidebar", logIn: "#sidebar" };
 const bag = {
 	en: { vegetables: "Vegetables", fruit: "Fruit", items: ["Example: carrots", "Example: Brussels sprouts", "Example: potatoes", "Example: apples"] },
 	da: { vegetables: "Grøntsager", fruit: "Frugt", items: ["Eksempel: gulerødder", "Eksempel: rosenkål", "Eksempel: kartofler", "Eksempel: æbler"] },
 }[locale];
 ---
 
-<p class="lead">ShortcutsBox for guests and members, NewsletterBox, and WeeklyBagBox with and without a bag.</p>
+<p class="lead">
+	ShortcutsBox for guests and members, NewsletterBox, and WeeklyBagBox with and without a bag. ShortcutsBox links
+	point into the member system by default; here the <code>hrefs</code> prop points them at this section.
+	NewsletterBox posts to the live Mailchimp list, so its form is blocked on this page.
+</p>
 
 <div class="auto-grid">
-	<ShortcutsBox locale={locale} />
-	<ShortcutsBox audience="member" locale={locale} />
+	<ShortcutsBox hrefs={shortcutHrefs} locale={locale} />
+	<ShortcutsBox audience="member" hrefs={shortcutHrefs} locale={locale} />
 	<NewsletterBox locale={locale} />
 
-	<WeeklyBagBox week={44} year={2026} pickupDate={new Date("2026-10-28T15:00:00Z")} href="/ugens-pose" locale={locale}>
+	<WeeklyBagBox week={44} year={2026} pickupDate={new Date("2026-10-28T15:00:00Z")} href="#sidebar" locale={locale}>
 		<h4>{bag.vegetables}</h4>
 		<ul>
 			<li>{bag.items[0]}</li>
@@ -35,5 +40,5 @@ const bag = {
 		</ul>
 	</WeeklyBagBox>
 
-	<WeeklyBagBox href="/ugens-pose" locale={locale} />
+	<WeeklyBagBox href="#sidebar" locale={locale} />
 </div>

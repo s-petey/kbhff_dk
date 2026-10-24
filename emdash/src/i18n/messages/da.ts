@@ -12,6 +12,10 @@ const da: Messages = {
 	common: {
 		search: "Søg…", // legacy: shop/index.php ("Søg"), ellipsis added for the placeholder
 	},
+	header: {
+		menu: "Menu", // REVIEW
+		mainNavigation: "Hovedmenu", // REVIEW
+	},
 	shortcuts: {
 		title: "Genveje", // legacy: pages/view.php sidebar
 		takeShift: "Ta' en vagt", // legacy: pages/view.php sidebar
@@ -48,6 +52,12 @@ const da: Messages = {
 	dialog: {
 		close: "Luk", // legacy: www/js/lib/desktop/types/m-user_profile.js
 		cancel: "Annuller", // legacy: signup/signup.php
+	},
+	theme: {
+		label: "Tema", // REVIEW
+		system: "System", // REVIEW
+		light: "Lys", // REVIEW
+		dark: "Mørk", // REVIEW
 	},
 };
 

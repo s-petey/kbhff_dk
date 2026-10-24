@@ -111,7 +111,9 @@ a:hover {
 
 a:focus-visible,
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
 	outline: 3px solid var(--color-focus);
 	outline-offset: 3px;
 }
@@ -162,50 +164,6 @@ h3 {
 
 .text-small {
 	font-size: 0.85rem;
-}
-
-/* Site header (Base.astro). Scoped by class so other <header> elements are unaffected. */
-.site-header {
-	background: var(--color-surface);
-	border-bottom: 1px solid var(--color-border);
-}
-
-.site-header nav {
-	display: flex;
-	align-items: center;
-	gap: clamp(0.75rem, 2vw, 1.75rem);
-	width: min(var(--content-width), calc(100% - 3rem));
-	min-height: 5rem;
-	margin-inline: auto;
-}
-
-.site-header nav > a:first-child {
-	margin-right: auto;
-	color: var(--color-text);
-	font-size: 1.15rem;
-	font-weight: 750;
-	text-decoration: none;
-	white-space: nowrap;
-}
-
-.site-header nav > a:not(:first-child) {
-	font-size: 0.95rem;
-	font-weight: 600;
-	text-decoration: none;
-}
-
-.site-header nav form {
-	max-width: 15rem;
-}
-
-.site-header nav input {
-	width: 100%;
-	padding: 0.55rem 0.8rem;
-	border: 1px solid var(--color-border);
-	border-radius: 0.6rem;
-	color: var(--color-text);
-	background: var(--color-canvas);
-	font: inherit;
 }
 
 main {
@@ -340,22 +298,6 @@ main > a {
 }
 
 @media (max-width: 640px) {
-	.site-header nav {
-		flex-wrap: wrap;
-		gap: 0.75rem 1rem;
-		width: calc(100% - 2rem);
-		padding-block: 0.8rem;
-	}
-
-	.site-header nav > a:first-child {
-		width: 100%;
-	}
-
-	.site-header nav form {
-		flex: 1 1 100%;
-		max-width: none;
-	}
-
 	main {
 		width: calc(100% - 2rem);
 		padding-block: 2.5rem;

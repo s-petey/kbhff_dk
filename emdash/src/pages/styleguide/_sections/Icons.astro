@@ -1,0 +1,48 @@
+---
+import Icon, { type IconName } from "../../../components/kbhff/Icon.astro";
+
+// Keep in sync with IconName in Icon.astro (the type check rejects unknown names).
+const icons: IconName[] = ["member", "basket", "pin", "leaf", "mail", "clock", "close", "menu", "globe"];
+---
+
+<p class="lead">
+	24×24 stroke icons in <code>currentColor</code>. Decorative by default (<code>aria-hidden</code>); pass
+	<code>label</code> when the icon carries meaning on its own.
+</p>
+
+<ul class="auto-grid icons">
+	{
+		icons.map((name) => (
+			<li>
+				<Icon name={name} size={28} />
+				<code>{name}</code>
+			</li>
+		))
+	}
+</ul>
+
+<style>
+	.icons {
+		--auto-grid-min: 7rem;
+		--auto-grid-gap: 0.75rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.icons li {
+		display: grid;
+		justify-items: center;
+		gap: 0.5rem;
+		padding: 1rem 0.5rem;
+		color: var(--color-brand);
+		background: var(--color-surface);
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-md);
+		font-size: 0.8rem;
+	}
+
+	.icons code {
+		color: var(--color-text-muted);
+	}
+</style>

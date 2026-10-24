@@ -1,0 +1,32 @@
+---
+import LanguageLink from "../../../components/kbhff/LanguageLink.astro";
+import ThemeSelect from "../../../components/kbhff/ThemeSelect.astro";
+import type { Locale } from "../../../i18n";
+
+interface Props {
+	locale: Locale;
+}
+
+const { locale } = Astro.props;
+---
+
+<p class="lead">
+	<code>SiteHeader</code> is the header at the top of this page; it is not repeated here because it owns the page's
+	menu id and script. Resize the window across <strong>64rem</strong> to see the narrow layout (brand, language link,
+	Menu button) and the wide layout (everything inline). <code>ThemeScript</code> has no visible output: it applies the
+	saved theme in <code>&lt;head&gt;</code> before first paint.
+</p>
+
+<h3>LanguageLink</h3>
+<p class="lead">
+	Always visible, named in the target language, with <code>lang</code> and <code>hreflang</code>. The page decides
+	where it points (<code>Base</code>'s <code>languageLink</code> prop).
+</p>
+<div class="cluster">
+	<LanguageLink locale="en" href="#site-header" />
+	<LanguageLink locale="da" href="#site-header" />
+</div>
+
+<h3>ThemeSelect</h3>
+<p class="lead">The same control as in the header; changing it changes the theme and stays in sync with the header.</p>
+<ThemeSelect locale={locale} />

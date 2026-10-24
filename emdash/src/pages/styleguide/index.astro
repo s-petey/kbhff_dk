@@ -4,7 +4,8 @@
  * Available in `astro dev`, and in production to logged-in EmDash admins
  * only; everyone else gets the 404 page. The page chrome is English (dev
  * tooling); `?lang=` switches the components' interface language and the
- * sample content.
+ * sample content. The switch is the site header's language link, as on
+ * every other page; this page only tells it where to point.
  *
  * Each section lives in ./_sections/ with its own markup and placeholder
  * content; `sections` below drives both the navigation and the page.
@@ -12,9 +13,10 @@
  */
 import Button from "../../components/kbhff/Button.astro";
 import Card from "../../components/kbhff/Card.astro";
-import { devLocale, localeNames, locales, resolveLocale } from "../../i18n";
+import { devLocale, localeNames, resolveLocale } from "../../i18n";
 import Base from "../../layouts/Base.astro";
 import { canViewAdminTools } from "../../utils/admin-access";
+import { otherLocale } from "../../utils/locale-links";
 import Section from "./_components/Section.astro";
 import Articles from "./_sections/Articles.astro";
 import Banners from "./_sections/Banners.astro";
@@ -24,8 +26,10 @@ import Colours from "./_sections/Colours.astro";
 import Departments from "./_sections/Departments.astro";
 import Dialogs from "./_sections/Dialogs.astro";
 import Faq from "./_sections/Faq.astro";
+import Icons from "./_sections/Icons.astro";
 import Layout from "./_sections/Layout.astro";
 import SidebarBoxes from "./_sections/SidebarBoxes.astro";
+import SiteHeaderSection from "./_sections/SiteHeaderSection.astro";
 import StepsSection from "./_sections/StepsSection.astro";
 import Typography from "./_sections/Typography.astro";
 
@@ -38,15 +42,18 @@ Astro.response.headers.set("Cache-Control", "private, no-store");
 Astro.response.headers.set("X-Robots-Tag", "noindex, nofollow");
 
 const locale = resolveLocale(Astro.url.searchParams.get("lang"), devLocale);
+const alternateLocale = otherLocale(locale);
 
 // `localized`: the section shows sample content in the selected language.
 const sections = [
 	{ id: "colours", title: "Colours", Body: Colours, localized: false },
 	{ id: "layout", title: "Layout", Body: Layout, localized: false },
 	{ id: "typography", title: "Typography", Body: Typography, localized: true },
+	{ id: "icons", title: "Icon", Body: Icons, localized: false },
 	{ id: "buttons", title: "Button", Body: Buttons, localized: true },
 	{ id: "cards", title: "Card", Body: Cards, localized: true },
 	{ id: "dialogs", title: "Dialog", Body: Dialogs, localized: true },
+	{ id: "site-header", title: "Site header", Body: SiteHeaderSection, localized: true },
 	{ id: "banner", title: "Banner", Body: Banners, localized: true },
 	{ id: "sidebar", title: "Sidebar boxes", Body: SidebarBoxes, localized: true },
 	{ id: "articles", title: "ArticleCard", Body: Articles, localized: true },
@@ -56,8 +63,13 @@ const sections = [
 ];
 ---
 
-<Base title="Styleguide" description="KBHFF component gallery (admin only)" locale={devLocale}>
-	<div class="stack styleguide">
+<Base
+	title="Styleguide"
+	description="KBHFF component gallery (admin only)"
+	locale={devLocale}
+	languageLink={{ locale: alternateLocale, href: `?lang=${alternateLocale}` }}
+>
+	<div class="stack styleguide" data-styleguide-samples>
 		<Card as="header">
 			<div class="stack intro">
 				<div class="stack heading">
@@ -66,32 +78,12 @@ const sections = [
 				</div>
 				<p class="lead">
 					Components from <code>src/components/kbhff</code>, rendered with placeholder content and the site's real CSS.
-					Names, addresses and text are invented examples, not KBHFF content.
+					Names, addresses and text are invented examples, not KBHFF content. Sample links point at their own section
+					and sample forms do not submit. Use the site header to switch theme and language, as on every other page.
 				</p>
-
-				<div class="cluster controls">
-					<div class="cluster group" role="group" aria-label="Component language">
-						<span class="text-small text-muted">Language</span>
-						{
-							locales.map((code) => (
-								<Button
-									href={`?lang=${code}`}
-									variant="secondary"
-									size="sm"
-									aria-current={code === locale ? "true" : undefined}
-								>
-									{localeNames[code]}
-								</Button>
-							))
-						}
-					</div>
-					<div class="cluster group" role="group" aria-label="Colour theme">
-						<span class="text-small text-muted">Theme</span>
-						<Button variant="secondary" size="sm" data-theme-choice="system">System</Button>
-						<Button variant="secondary" size="sm" data-theme-choice="light">Light</Button>
-						<Button variant="secondary" size="sm" data-theme-choice="dark">Dark</Button>
-					</div>
-				</div>
+				<p class="text-small text-muted">
+					Components and sample content: <strong lang={locale}>{localeNames[locale]}</strong>
+				</p>
 
 				<nav class="cluster group" aria-label="Styleguide sections">
 					{
@@ -116,38 +108,12 @@ const sections = [
 </Base>
 
 <script>
-	// Preview-only theme switch: sets data-theme on <html>, remembered per browser.
-	const STORAGE_KEY = "kbhff-styleguide-theme";
-	const root = document.documentElement;
-	const buttons = document.querySelectorAll<HTMLButtonElement>("[data-theme-choice]");
-
-	function apply(choice: string) {
-		if (choice === "light" || choice === "dark") root.dataset.theme = choice;
-		else delete root.dataset.theme;
-		buttons.forEach((button) =>
-			button.setAttribute("aria-pressed", String(button.dataset.themeChoice === choice)),
-		);
-	}
-
-	let saved = "system";
-	try {
-		saved = localStorage.getItem(STORAGE_KEY) ?? "system";
-	} catch {
-		// Storage can be unavailable (private mode, blocked site data).
-	}
-	apply(saved);
-
-	buttons.forEach((button) =>
-		button.addEventListener("click", () => {
-			const choice = button.dataset.themeChoice ?? "system";
-			apply(choice);
-			try {
-				localStorage.setItem(STORAGE_KEY, choice);
-			} catch {
-				// Ignore; the choice still applies for this page view.
-			}
-		}),
-	);
+	// Sample links point at in-page anchors. Forms are the exception: the
+	// NewsletterBox posts to the live Mailchimp list, so sample forms do not
+	// submit. Dialog forms (method="dialog") keep working.
+	document.querySelector("[data-styleguide-samples]")?.addEventListener("submit", (event) => {
+		if (event.target instanceof HTMLFormElement && event.target.method !== "dialog") event.preventDefault();
+	});
 </script>
 
 <style>
@@ -158,10 +124,6 @@ const sections = [
 
 	.heading {
 		--stack-gap: 0.25rem;
-	}
-
-	.controls {
-		--cluster-gap: 0.75rem 1.5rem;
 	}
 
 	.group {

@@ -2,7 +2,6 @@
 import Banner from "../../../components/kbhff/Banner.astro";
 import Button from "../../../components/kbhff/Button.astro";
 import type { Locale } from "../../../i18n";
-import { legacyAppUrl } from "../../../utils/legacy-app";
 
 interface Props {
 	locale: Locale;
@@ -20,5 +19,5 @@ const text = {
 <Banner photo={1} />
 
 <Banner photo={3} heading={text.heading} subheading={text.subheading}>
-	<Button href={legacyAppUrl("/bliv-medlem")}>{text.action}</Button>
+	<Button href="#banner">{text.action}</Button>
 </Banner>

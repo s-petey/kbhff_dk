@@ -7,6 +7,10 @@ const en = {
 	common: {
 		search: "Search…",
 	},
+	header: {
+		menu: "Menu",
+		mainNavigation: "Main navigation",
+	},
 	shortcuts: {
 		title: "Shortcuts",
 		takeShift: "Take a shift",
@@ -43,6 +47,12 @@ const en = {
 	dialog: {
 		close: "Close",
 		cancel: "Cancel",
+	},
+	theme: {
+		label: "Theme",
+		system: "System",
+		light: "Light",
+		dark: "Dark",
 	},
 };
 

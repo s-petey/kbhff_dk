@@ -1,7 +1,6 @@
 ---
 import Steps from "../../../components/kbhff/Steps.astro";
 import type { Locale } from "../../../i18n";
-import { legacyAppUrl } from "../../../utils/legacy-app";
 
 interface Props {
 	locale: Locale;
@@ -33,9 +32,9 @@ const text = {
 <Steps
 	heading={text.heading}
 	steps={[
-		{ title: text.steps[0][0], description: text.steps[0][1], href: legacyAppUrl("/bliv-medlem"), icon: "member" },
-		{ title: text.steps[1][0], description: text.steps[1][1], href: legacyAppUrl("/butik"), icon: "basket" },
-		{ title: text.steps[2][0], description: text.steps[2][1], href: "/afdelinger", icon: "pin" },
-		{ title: text.steps[3][0], description: text.steps[3][1], href: "/ugens-pose", icon: "leaf" },
+		{ title: text.steps[0][0], description: text.steps[0][1], href: "#steps", icon: "member" },
+		{ title: text.steps[1][0], description: text.steps[1][1], href: "#steps", icon: "basket" },
+		{ title: text.steps[2][0], description: text.steps[2][1], href: "#steps", icon: "pin" },
+		{ title: text.steps[3][0], description: text.steps[3][1], href: "#steps", icon: "leaf" },
 	]}
 />

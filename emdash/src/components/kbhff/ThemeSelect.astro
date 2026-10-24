@@ -1,0 +1,89 @@
+---
+import { getMessages, resolveLocale, type Locale } from "../../i18n";
+
+/**
+ * System / Light / Dark choice as a native <select>. The choice is stored in
+ * localStorage under `kbhff-theme` (removed for System) and applied as
+ * `data-theme` on <html>; ThemeScript.astro restores it before first paint.
+ * localStorage rather than a cookie keeps the server-rendered HTML identical
+ * for every visitor, so pages stay cacheable. Several selects on one page
+ * stay in sync.
+ *
+ * The server always renders "System" as selected; the script sets the stored
+ * value on load (the page itself is already themed by ThemeScript).
+ */
+interface Props {
+	locale?: Locale;
+}
+
+const { locale = resolveLocale(Astro.currentLocale) } = Astro.props;
+const t = getMessages(locale).theme;
+---
+
+<label class="theme-select">
+	<span class="text-small text-muted">{t.label}</span>
+	<select data-theme-select>
+		<option value="system">{t.system}</option>
+		<option value="light">{t.light}</option>
+		<option value="dark">{t.dark}</option>
+	</select>
+</label>
+
+<script>
+	const STORAGE_KEY = "kbhff-theme";
+	const root = document.documentElement;
+	const selects = document.querySelectorAll<HTMLSelectElement>("select[data-theme-select]");
+
+	function apply(choice: string) {
+		const forced = choice === "light" || choice === "dark";
+		if (forced) root.dataset.theme = choice;
+		else delete root.dataset.theme;
+		document
+			.querySelector('meta[name="color-scheme"]')
+			?.setAttribute("content", forced ? choice : "light dark");
+		selects.forEach((select) => {
+			select.value = forced ? choice : "system";
+		});
+	}
+
+	// ThemeScript already applied the stored theme before paint; only the
+	// selects still show the server-rendered "System".
+	try {
+		const stored = localStorage.getItem(STORAGE_KEY);
+		if (stored === "light" || stored === "dark") selects.forEach((select) => (select.value = stored));
+	} catch {
+		// Storage can be unavailable (private mode, blocked site data).
+	}
+
+	selects.forEach((select) => {
+		select.addEventListener("change", () => {
+			apply(select.value);
+			try {
+				if (select.value === "light" || select.value === "dark") localStorage.setItem(STORAGE_KEY, select.value);
+				else localStorage.removeItem(STORAGE_KEY);
+			} catch {
+				// Ignore; the choice still applies for this page view.
+			}
+		});
+	});
+</script>
+
+<style>
+	.theme-select {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	select {
+		min-height: 2.25rem;
+		padding: 0.35rem 0.6rem;
+		border: 1px solid var(--color-border);
+		border-radius: var(--radius-sm);
+		color: var(--color-text);
+		background: var(--color-surface);
+		font: inherit;
+		font-size: 0.9rem;
+		cursor: pointer;
+	}
+</style>

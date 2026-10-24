@@ -4,8 +4,9 @@ import "../styles/layout.css";
 import { getMenuWithCacheHint, getSiteSettingsWithCacheHint } from "emdash";
 import { EmDashHead, EmDashBodyStart, EmDashBodyEnd } from "emdash/ui";
 import { createPublicPageContext } from "emdash/page";
-import LiveSearch from "emdash/ui/search";
-import { getMessages, resolveLocale, type Locale } from "../i18n";
+import SiteHeader from "../components/kbhff/SiteHeader.astro";
+import ThemeScript from "../components/kbhff/ThemeScript.astro";
+import { resolveLocale, type Locale } from "../i18n";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
 
 interface Props {
@@ -18,6 +19,8 @@ interface Props {
 	content?: { collection: string; id: string; slug?: string | null };
 	/** Interface language; defaults to the request locale, then the site default. */
 	locale?: Locale;
+	/** Target of the header's language link; see SiteHeader. Defaults to the other language's home page. */
+	languageLink?: { locale: Locale; href: string };
 }
 
 const {
@@ -28,8 +31,8 @@ const {
 	canonical,
 	content,
 	locale = resolveLocale(Astro.currentLocale),
+	languageLink,
 } = Astro.props;
-const t = getMessages(locale);
 const [settingsResult, menuResult] = await Promise.all([
 	getSiteSettingsWithCacheHint(),
 	getMenuWithCacheHint("primary"),
@@ -69,41 +72,21 @@ const pageCtx = createPublicPageContext({
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="color-scheme" content="light dark" />
+		<ThemeScript />
 		<title>{fullTitle}</title>
 		<EmDashHead page={pageCtx} />
 	</head>
 	<body>
 		<EmDashBodyStart page={pageCtx} />
 
-		<header class="site-header">
-			<nav>
-				<a href="/">
-					{
-						siteLogo ? (
-							<img
-								src={siteLogo.url}
-								alt={siteLogo.alt || siteTitle}
-								style="height:48px;width:auto;margin:-8px 0;display:block;"
-							/>
-						) : (
-							siteTitle
-						)
-					}
-				</a>
-				{
-					menu?.items.map((item) => (
-						<a
-							href={item.url}
-							target={item.target}
-							rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
-						>
-							{item.label}
-						</a>
-					))
-				}
-				<LiveSearch placeholder={t.common.search} collections={["posts", "pages"]} />
-			</nav>
-		</header>
+		<SiteHeader
+			siteTitle={siteTitle}
+			siteLogo={siteLogo}
+			links={menu?.items ?? []}
+			locale={locale}
+			languageLink={languageLink}
+		/>
 
 		<main>
 			<slot />

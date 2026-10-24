@@ -1,0 +1,22 @@
+---
+/**
+ * Applies the visitor's saved theme before first paint, so a forced
+ * light/dark choice does not flash the wrong theme. Place it in <head>,
+ * before stylesheets. Inline on purpose (`is:inline`): Astro must not bundle
+ * or defer it. "System" is the absence of a stored value, so the HTML is
+ * identical for every visitor and stays cacheable. See ThemeSelect.astro.
+ */
+---
+
+<script is:inline>
+	try {
+		var theme = localStorage.getItem("kbhff-theme");
+		if (theme === "light" || theme === "dark") {
+			document.documentElement.dataset.theme = theme;
+			var meta = document.querySelector('meta[name="color-scheme"]');
+			if (meta) meta.setAttribute("content", theme);
+		}
+	} catch (e) {
+		// Storage can be unavailable (private mode, blocked site data): follow the OS.
+	}
+</script>

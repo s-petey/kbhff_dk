@@ -5,7 +5,8 @@ import type { HTMLAttributes } from "astro/types";
  * A link styled as a button when `href` is set, otherwise a real `<button>`
  * (`type="button"` unless `type` is given, e.g. `submit` in a dialog form).
  * Other attributes (aria-*, data-*, commandfor/command) pass through.
- * `aria-pressed="true"` or `aria-current` shows the selected state.
+ * `aria-pressed="true"`, `aria-expanded="true"` or `aria-current` shows the
+ * selected state.
  */
 interface Props extends Omit<HTMLAttributes<"button">, "class"> {
 	href?: string;
@@ -95,8 +96,9 @@ const className = ["button", variant, size];
 		background: var(--color-danger-hover);
 	}
 
-	/* Selected state for toggle groups and current-page links. */
+	/* Selected state: toggle buttons, current-page links, open disclosures. */
 	.button[aria-pressed="true"],
+	.button[aria-expanded="true"],
 	.button[aria-current]:not([aria-current="false"]) {
 		color: var(--color-on-brand);
 		background: var(--color-brand);

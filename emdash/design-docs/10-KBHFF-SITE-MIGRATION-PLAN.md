@@ -202,7 +202,9 @@ routes were copied into CMS content.
 
 The paths in the table are the paths implied by each entry's current slug and
 the generic Astro page route; they do not yet preserve the legacy URL paths.
-Astro i18n is not configured, so there is currently no `/en` prefix. The
+Astro i18n is not configured yet, so there is currently no `/en` prefix (it
+appears automatically for English once `i18n` is configured; see
+[phase 1](#1-research-and-decide-i18n)). The
 entries are drafts and are not public pages. Before publishing, implement the
 routes and decide whether to preserve the source paths or add explicit
 redirects. The local EmDash database did not contain Danish source content, so
@@ -225,8 +227,29 @@ public rendering.
 
 - Read [the i18n research note](./00-RESEARCH-I18N-EMDASH-ASTRO.md) before
   designing the content import or routes.
-- Decide whether English URLs should retain `/english/...` or use `/en/...`;
-  keep Danish's current unprefixed URLs either way.
+- **Decided (2026-10-24): Danish is the default locale and stays unprefixed;
+  English is prefixed with `/en/`.** Locale codes are `da` and `en` (language
+  codes; not `dk`). Configuration:
+
+  ```js
+  // astro.config.mjs
+  i18n: {
+  	defaultLocale: "da",
+  	locales: ["da", "en"],
+  },
+  ```
+
+  | Language | Code | Default? | URL | Legacy URL |
+  | --- | --- | --- | --- | --- |
+  | Danish | `da` | Yes | `/om`, `/nyheder/...` (no prefix) | Unchanged |
+  | English | `en` | No | `/en/about`, `/en/...` (prefix added by Astro) | `/english` → redirect to `/en` |
+
+  EmDash's "do not prefix the default locale" rule is about Danish only:
+  `/da/...` would make `/_emdash/admin` return 404. Prefixing English is
+  Astro's default behaviour and is required. See
+  [the i18n research note](./00-RESEARCH-I18N-EMDASH-ASTRO.md#configure-locale-routing-safely).
+- Still open: whether English falls back to Danish content when a page has no
+  translation (`fallback: { en: "da" }`). Start without a fallback.
 - Prototype EmDash admin, content routing, language switching, and sitemap
   behavior with Danish as the default locale before configuring the live model.
 

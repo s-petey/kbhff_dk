@@ -1,5 +1,6 @@
 ---
 import Button from "../../../components/kbhff/Button.astro";
+import Icon from "../../../components/kbhff/Icon.astro";
 import type { Locale } from "../../../i18n";
 
 interface Props {
@@ -8,11 +9,38 @@ interface Props {
 
 const { locale } = Astro.props;
 const text = {
-	en: { primary: "Primary", secondary: "Secondary", warning: "Warning", danger: "Danger", small: "Small" },
-	da: { primary: "Primær", secondary: "Sekundær", warning: "Advarsel", danger: "Fare", small: "Lille" },
+	en: {
+		primary: "Primary",
+		secondary: "Secondary",
+		warning: "Warning",
+		danger: "Danger",
+		small: "Small",
+		link: "Link (with href)",
+		button: "Button (no href)",
+		withIcon: "With icon",
+		pressed: "Pressed",
+		notPressed: "Not pressed",
+		expanded: "Expanded",
+		current: "Current page",
+	},
+	da: {
+		primary: "Primær",
+		secondary: "Sekundær",
+		warning: "Advarsel",
+		danger: "Fare",
+		small: "Lille",
+		link: "Link (med href)",
+		button: "Knap (uden href)",
+		withIcon: "Med ikon",
+		pressed: "Valgt",
+		notPressed: "Ikke valgt",
+		expanded: "Åben",
+		current: "Aktuel side",
+	},
 }[locale];
 ---
 
+<h3>Variants and sizes</h3>
 <div class="cluster">
 	<Button href="#buttons">{text.primary}</Button>
 	<Button href="#buttons" variant="secondary">{text.secondary}</Button>
@@ -20,4 +48,31 @@ const text = {
 	<Button href="#buttons" variant="danger">{text.danger}</Button>
 	<Button href="#buttons" size="sm">{text.small}</Button>
 	<Button href="#buttons" variant="secondary" size="sm">{text.small}</Button>
+</div>
+
+<h3>Link or button</h3>
+<p class="lead">
+	With <code>href</code> it renders <code>&lt;a&gt;</code>; without it, <code>&lt;button type="button"&gt;</code> (or
+	<code>type="submit"</code> when given). Other attributes such as <code>aria-*</code>, <code>data-*</code> and
+	<code>commandfor</code> pass through.
+</p>
+<div class="cluster">
+	<Button href="#buttons" variant="secondary">{text.link}</Button>
+	<Button variant="secondary">{text.button}</Button>
+	<Button variant="secondary">
+		<Icon name="menu" size={20} />
+		<span>{text.withIcon}</span>
+	</Button>
+</div>
+
+<h3>Selected states</h3>
+<p class="lead">
+	<code>aria-pressed="true"</code> (toggle buttons), <code>aria-expanded="true"</code> (open disclosures such as the
+	header's Menu button) and <code>aria-current</code> (current-page links) all show the selected style.
+</p>
+<div class="cluster">
+	<Button variant="secondary" aria-pressed="false">{text.notPressed}</Button>
+	<Button variant="secondary" aria-pressed="true">{text.pressed}</Button>
+	<Button variant="secondary" aria-expanded="true">{text.expanded}</Button>
+	<Button href="#buttons" variant="secondary" aria-current="page">{text.current}</Button>
 </div>
