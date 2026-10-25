@@ -11,6 +11,8 @@ import { otherLocale, resolveLocale, type Locale } from "../i18n";
 import { homePath, type LanguageLinkTarget, type NewsFilters } from "../i18n/routes";
 import type { Alternate } from "../i18n/translations";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
+import kbhffStamp from "../components/kbhff-stamp.webp?url";
+import kbhffStampDark from "../components/kbhff-stamp-dark.webp?url";
 
 interface Props {
 	title: string;
@@ -94,9 +96,26 @@ const pageCtx = createPublicPageContext({
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta name="color-scheme" content="light dark" />
+		
 		<ThemeScript />
 		<title>{fullTitle}</title>
 		<EmDashHead page={pageCtx} />
+		
+
+		<link rel="icon" href={kbhffStamp} type="image/webp" />
+        <link
+            rel="icon"
+            href={kbhffStamp}
+            type="image/webp"
+            media="(prefers-color-scheme: light)"
+        />
+        <link
+            rel="icon"
+            href={kbhffStampDark}
+            type="image/webp"
+            media="(prefers-color-scheme: dark)"
+        />
+
 		{alternates.map(({ hreflang, href }) => <link rel="alternate" hreflang={hreflang} href={href} />)}
 	</head>
 	<body>
