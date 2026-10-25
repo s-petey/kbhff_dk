@@ -15,227 +15,279 @@
  * DOM order is brand → menu button → menu → language link, so focus moves
  * from the button straight into the opened menu.
  */
+import { Image } from "astro:assets";
 import { getMessages, type Locale } from "../../i18n";
-import { homePath, type LanguageLinkTarget, type NewsFilters } from "../../i18n/routes";
+import {
+    homePath,
+    type LanguageLinkTarget,
+    type NewsFilters,
+} from "../../i18n/routes";
 import Button from "./Button.astro";
 import Icon from "./Icon.astro";
 import LanguageLink from "./LanguageLink.astro";
 import SearchBox from "./SearchBox.astro";
 import ThemeSelect from "./ThemeSelect.astro";
+import ImageButton from "./ImageButton.astro";
+import kbhffStamp from "../kbhff-stamp.webp";
+import kbhffStampDark from "../kbhff-stamp-dark.webp";
 
 interface MenuLink {
-	label: string;
-	url: string;
-	target?: string | null;
+    label: string;
+    url: string;
+    target?: string | null;
 }
 
 interface Props {
-	siteTitle: string;
-	siteLogo: { url?: string; alt?: string } | null;
-	links: MenuLink[];
-	locale: Locale;
-	/** Where the language link points; set by the page through Base. */
-	languageLink: LanguageLinkTarget;
-	/** News list only: the current search and filters for the search box. */
-	searchFilters?: NewsFilters;
+    siteTitle: string;
+    siteLogo: { url?: string; alt?: string } | null;
+    links: MenuLink[];
+    locale: Locale;
+    /** Where the language link points; set by the page through Base. */
+    languageLink: LanguageLinkTarget;
+    /** News list only: the current search and filters for the search box. */
+    searchFilters?: NewsFilters;
 }
 
-const { siteTitle, siteLogo, links, locale, languageLink, searchFilters } = Astro.props;
+const { links, locale, languageLink, searchFilters } = Astro.props;
 const t = getMessages(locale);
 // Menu URLs may or may not end in "/" ("/en/" vs "/en"); compare without it.
-const withoutTrailingSlash = (path: string) => (path.length > 1 ? path.replace(/\/$/, "") : path);
+const withoutTrailingSlash = (path: string) =>
+    path.length > 1 ? path.replace(/\/$/, "") : path;
 const currentPath = withoutTrailingSlash(Astro.url.pathname);
 ---
 
 <header class="site-header" data-site-header>
-	<div class="bar">
-		<a class="brand" href={homePath(locale)}>
-			{siteLogo?.url ? <img src={siteLogo.url} alt={siteLogo.alt || siteTitle} /> : siteTitle}
-		</a>
+    <div class="bar">
+        <ImageButton
+            label=""
+            alt="KBHFF stamp logo"
+            src={kbhffStamp}
+            class="stamp-light"
+            href={homePath(locale)}
+        />
+        <ImageButton
+            label=""
+            class="stamp-dark"
+            alt="KBHFF stamp logo"
+            src={kbhffStampDark}
+        />
+        <!-- {siteLogo?.url ? <img src={siteLogo.url} alt={siteLogo.alt || siteTitle} /> : siteTitle} -->
 
-		<div class="menu-toggle">
-			<Button variant="secondary" aria-expanded="false" aria-controls="site-menu" data-menu-toggle>
-				<Icon name="menu" size={20} />
-				<span>{t.header.menu}</span>
-			</Button>
-		</div>
+        <h1>
+            {locale === "en"
+                ? "Copenhagen food community"
+                : "Københavns Fødevarefællesskab"}
+        </h1>
+    </div>
 
-		<div class="menu" id="site-menu">
-			<nav aria-label={t.header.mainNavigation}>
-				<ul>
-					{
-						links.map((link) => (
-							<li>
-								<a
-									href={link.url}
-									target={link.target || undefined}
-									rel={link.target === "_blank" ? "noopener noreferrer" : undefined}
-									aria-current={withoutTrailingSlash(link.url) === currentPath ? "page" : undefined}
-								>
-									{link.label}
-								</a>
-							</li>
-						))
-					}
-				</ul>
-			</nav>
-			<SearchBox locale={locale} filters={searchFilters} />
-			<ThemeSelect locale={locale} />
-		</div>
+    <div class="bar">
+        <div class="menu-toggle">
+            <Button
+                variant="secondary"
+                aria-expanded="false"
+                aria-controls="site-menu"
+                data-menu-toggle
+            >
+                <Icon name="menu" size={20} />
+                <span>{t.header.menu}</span>
+            </Button>
+        </div>
 
-		<div class="language">
-			<LanguageLink locale={languageLink.locale} href={languageLink.href} />
-		</div>
-	</div>
+        <div class="menu" id="site-menu">
+            <nav aria-label={t.header.mainNavigation}>
+                <ul>
+                    {links.map((link) => (
+                        <li>
+                            <a
+                                href={link.url}
+                                target={link.target || undefined}
+                                rel={
+                                    link.target === "_blank"
+                                        ? "noopener noreferrer"
+                                        : undefined
+                                }
+                                aria-current={
+                                    withoutTrailingSlash(link.url) ===
+                                    currentPath
+                                        ? "page"
+                                        : undefined
+                                }
+                            >
+                                {link.label}
+                            </a>
+                        </li>
+                    ))}
+                </ul>
+            </nav>
+            <SearchBox locale={locale} filters={searchFilters} />
+            <ThemeSelect locale={locale} />
+        </div>
+
+        <div class="language">
+            <LanguageLink
+                locale={languageLink.locale}
+                href={languageLink.href}
+            />
+        </div>
+    </div>
 </header>
 
 <script>
-	const header = document.querySelector<HTMLElement>("[data-site-header]");
-	const toggle = header?.querySelector<HTMLButtonElement>("[data-menu-toggle]");
+    const header = document.querySelector<HTMLElement>("[data-site-header]");
+    const toggle =
+        header?.querySelector<HTMLButtonElement>("[data-menu-toggle]");
 
-	if (header && toggle) {
-		const setOpen = (open: boolean) => {
-			header.dataset.menu = open ? "open" : "closed";
-			toggle.setAttribute("aria-expanded", String(open));
-		};
+    if (header && toggle) {
+        const setOpen = (open: boolean) => {
+            header.dataset.menu = open ? "open" : "closed";
+            toggle.setAttribute("aria-expanded", String(open));
+        };
 
-		// With JavaScript the menu starts closed and the button appears.
-		setOpen(false);
+        // With JavaScript the menu starts closed and the button appears.
+        setOpen(false);
 
-		toggle.addEventListener("click", () => setOpen(header.dataset.menu !== "open"));
+        toggle.addEventListener("click", () =>
+            setOpen(header.dataset.menu !== "open"),
+        );
 
-		header.addEventListener("keydown", (event) => {
-			if (event.key === "Escape" && header.dataset.menu === "open") {
-				setOpen(false);
-				toggle.focus();
-			}
-		});
-	}
+        header.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && header.dataset.menu === "open") {
+                setOpen(false);
+                toggle.focus();
+            }
+        });
+    }
 </script>
 
 <style>
-	.site-header {
-		background: var(--color-surface);
-		border-block-end: 1px solid var(--color-border);
-	}
+    .site-header {
+        background: var(--color-surface);
+        border-block-end: 1px solid var(--color-border);
+    }
 
-	/* Narrow layout: brand, language and menu button in one row; the menu panel below. */
-	.bar {
-		display: grid;
-		grid-template-areas:
-			"brand language toggle"
-			"menu menu menu";
-		grid-template-columns: 1fr auto auto;
-		align-items: center;
-		gap: 0 0.5rem;
-		width: min(var(--content-width), 100% - 2rem);
-		min-height: 4rem;
-		margin-inline: auto;
-	}
+    /* Narrow layout: brand, language and menu button in one row; the menu panel below. */
+    .bar {
+        display: grid;
+        grid-template-areas:
+            "brand language toggle"
+            "menu menu menu";
+        grid-template-columns: 1fr auto auto;
+        align-items: center;
+        gap: 0 0.5rem;
+        width: min(var(--content-width), 100% - 2rem);
+        min-height: 4rem;
+        margin-inline: auto;
+    }
 
-	.brand {
-		grid-area: brand;
-		justify-self: start;
-		color: var(--color-text);
-		font-size: 1.15rem;
-		font-weight: 750;
-		text-decoration: none;
-		white-space: nowrap;
-	}
+    .language {
+        grid-area: language;
+    }
 
-	.brand img {
-		display: block;
-		height: 3rem;
-		width: auto;
-	}
+    .menu-toggle {
+        grid-area: toggle;
+    }
 
-	.language {
-		grid-area: language;
-	}
+    /* Without JavaScript there is no way to open the menu, so it stays open. */
+    .site-header:not([data-menu]) .menu-toggle {
+        display: none;
+    }
 
-	.menu-toggle {
-		grid-area: toggle;
-	}
+    .menu {
+        grid-area: menu;
+        display: grid;
+        gap: 1rem;
+        padding-block: 0.5rem 1.25rem;
+        border-block-start: 1px solid var(--color-border);
+    }
 
-	/* Without JavaScript there is no way to open the menu, so it stays open. */
-	.site-header:not([data-menu]) .menu-toggle {
-		display: none;
-	}
+    nav ul {
+        display: grid;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
 
-	.menu {
-		grid-area: menu;
-		display: grid;
-		gap: 1rem;
-		padding-block: 0.5rem 1.25rem;
-		border-block-start: 1px solid var(--color-border);
-	}
+    nav a {
+        display: block;
+        padding-block: 0.75rem;
+        border-block-end: 1px solid var(--color-border);
+        color: var(--color-text);
+        font-weight: 600;
+        text-decoration: none;
+    }
 
-	nav ul {
-		display: grid;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
+    nav a:hover,
+    nav a[aria-current="page"] {
+        color: var(--color-brand);
+    }
 
-	nav a {
-		display: block;
-		padding-block: 0.75rem;
-		border-block-end: 1px solid var(--color-border);
-		color: var(--color-text);
-		font-weight: 600;
-		text-decoration: none;
-	}
+    .stamp-dark {
+        display: none;
+    }
 
-	nav a:hover,
-	nav a[aria-current="page"] {
-		color: var(--color-brand);
-	}
+    html[data-theme="dark"] .stamp-light {
+        display: none;
+    }
 
-	@media (width < 64rem) {
-		.site-header[data-menu="closed"] .menu {
-			display: none;
-		}
-	}
+    html[data-theme="dark"] .stamp-dark {
+        display: block;
+    }
 
-	/* Wide layout: brand | navigation, search, theme | language. */
-	@media (width >= 64rem) {
-		.bar {
-			grid-template-areas: "brand menu language";
-			grid-template-columns: auto 1fr auto;
-			gap: clamp(1rem, 2vw, 2rem);
-			min-height: 5rem;
-		}
+    @media (prefers-color-scheme: dark) {
+        html:not([data-theme]) .stamp-light {
+            display: none;
+        }
 
-		.menu-toggle {
-			display: none;
-		}
+        html:not([data-theme]) .stamp-dark {
+            display: block;
+        }
+    }
 
-		.menu {
-			display: flex;
-			align-items: center;
-			gap: clamp(0.75rem, 1.5vw, 1.5rem);
-			padding: 0;
-			border: 0;
-		}
+    @media (width < 64rem) {
+        .site-header[data-menu="closed"] .menu {
+            display: none;
+        }
+    }
 
-		nav {
-			margin-inline-end: auto;
-		}
+    /* Wide layout: brand | navigation, search, theme | language. */
+    @media (width >= 64rem) {
+        .bar {
+            grid-template-areas: "brand menu language";
+            grid-template-columns: auto 1fr auto;
+            gap: clamp(1rem, 2vw, 2rem);
+            min-height: 5rem;
+        }
 
-		nav ul {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 0.25rem clamp(0.75rem, 1.5vw, 1.5rem);
-		}
+        .menu-toggle {
+            display: none;
+        }
 
-		nav a {
-			padding-block: 0.4rem;
-			border: 0;
-			font-size: 0.95rem;
-		}
+        .menu {
+            display: flex;
+            align-items: center;
+            gap: clamp(0.75rem, 1.5vw, 1.5rem);
+            padding: 0;
+            border: 0;
+        }
 
-		.menu :global(.search-box) {
-			width: 16rem;
-		}
-	}
+        nav {
+            margin-inline-end: auto;
+        }
+
+        nav ul {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem clamp(0.75rem, 1.5vw, 1.5rem);
+        }
+
+        nav a {
+            padding-block: 0.4rem;
+            border: 0;
+            font-size: 0.95rem;
+        }
+
+        .menu :global(.search-box) {
+            width: 16rem;
+        }
+    }
 </style>
