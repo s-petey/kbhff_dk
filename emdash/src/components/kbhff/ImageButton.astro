@@ -1,0 +1,85 @@
+---
+import { Image } from "astro:assets";
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends Omit<HTMLAttributes<"button">, "class" | "aria-label"> {
+    class?: string;
+    href?: string;
+    src: ImageMetadata;
+    label: string;
+    alt?: string;
+    size?: "sm" | "md" | "lg";
+}
+
+const {
+    class: customClass,
+    href,
+    src,
+    label,
+    alt = "",
+    size = "md",
+    type = "button",
+    ...attrs
+} = Astro.props;
+const className = ["image-button", size, customClass];
+---
+
+{href ? (
+    <a class:list={className} href={href} aria-label={label} {...attrs}>
+        <Image src={src} alt={alt} />
+    </a>
+) : (
+    <button class:list={className} type={type} aria-label={label} {...attrs}>
+        <Image src={src} alt={alt} />
+    </button>
+)}
+
+<style>
+    .image-button {
+        display: inline-grid;
+        place-items: center;
+        flex: none;
+        aspect-ratio: 1;
+        padding: 0;
+        overflow: hidden;
+        border: 1px solid var(--color-border);
+        border-radius: 50%;
+        background: var(--color-surface);
+        color: var(--color-text);
+        line-height: 1;
+        cursor: pointer;
+        transition:
+            border-color 140ms ease,
+            transform 140ms ease;
+    }
+
+    .image-button:hover {
+        border-color: var(--color-brand);
+        transform: scale(1.04);
+    }
+
+    .image-button:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+        transform: none;
+    }
+
+    .sm {
+        width: 2.5rem;
+    }
+
+    .md {
+        width: 3rem;
+    }
+
+    .lg {
+        width: 3.5rem;
+    }
+
+    img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+</style>

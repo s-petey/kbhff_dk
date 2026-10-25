@@ -1,6 +1,8 @@
 ---
 import Button from "../../../components/kbhff/Button.astro";
+import ImageButton from "../../../components/kbhff/ImageButton.astro";
 import Icon from "../../../components/kbhff/Icon.astro";
+import stamp from "../../../components/kbhff-stamp.webp";
 import type { Locale } from "../../../i18n";
 
 interface Props {
@@ -75,4 +77,15 @@ const text = {
 	<Button variant="secondary" aria-pressed="true">{text.pressed}</Button>
 	<Button variant="secondary" aria-expanded="true">{text.expanded}</Button>
 	<Button href="#button" variant="secondary" aria-current="page">{text.current}</Button>
+</div>
+
+<h3>Image buttons</h3>
+<p class="lead">
+	Use <code>ImageButton</code> for an image-based action or link. The image is cropped to a circle; provide a concise
+	<code>label</code> for its accessible name.
+</p>
+<div class="cluster">
+	<ImageButton src={stamp} label="Open Copenhagen food community" href="#button" />
+	<ImageButton src={stamp} label="Select image" size="sm" aria-pressed="true" />
+	<ImageButton src={stamp} label="Disabled image button" size="lg" disabled />
 </div>
